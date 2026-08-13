@@ -4,9 +4,7 @@ Proyecto **Spring Boot 3 + Java 21 + Gradle** organizado por capas, como base
 para administrar la información sanitaria del ganado, controlar inventario de
 productos veterinarios y calcular costos de vacunación y desparasitación.
 
-> ⚠️ **Este repo es un esqueleto de referencia del proyecto.** La idea es que
-> la estructura, nombres y módulos reflejen tu dominio: animales, lotes,
-> productos veterinarios, inventario, jornadas sanitarias y costos.
+> ⚠️ **Este repo es un esqueleto de referencia del proyecto.**
 
 ## Cómo se organiza (arquitectura por capas)
 

@@ -1,0 +1,27 @@
+# ===== Gradle =====
+.gradle/
+build/
+
+# ===== Java =====
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# ===== IDEs =====
+# IntelliJ IDEA
+.idea/
+*.iml
+# VS Code
+.vscode/
+# Eclipse
+.settings/
+.project
+.classpath
+bin/
+
+# ===== Sistema operativo =====
+.DS_Store
+Thumbs.db
+
+# ===== Logs y temporales =====
+*.log

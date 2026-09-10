@@ -9,9 +9,9 @@ name: CI                      # Nombre que verás en la pestaña "Actions" de Gi
 
 on:                           # ¿CUÁNDO se ejecuta este workflow?
   push:                       #   - cada vez que subís commits (push)
-    branches: [ main ]        #     a la rama main
+    branches: [ main, master ]  #   a la rama main o master (la rama por defecto de este repo es master)
   pull_request:               #   - y cuando abrís un pull request
-    branches: [ main ]
+    branches: [ main, master ]
 
 jobs:                         # Un workflow tiene uno o más "jobs" (trabajos)
   build:                      # Nuestro job se llama "build"

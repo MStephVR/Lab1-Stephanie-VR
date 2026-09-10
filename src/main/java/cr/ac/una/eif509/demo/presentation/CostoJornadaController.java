@@ -1,12 +1,13 @@
 package cr.ac.una.eif509.demo.presentation;
 
 import cr.ac.una.eif509.demo.business.CostoJornadaService;
+import cr.ac.una.eif509.demo.business.CostoJornadaService.CostoJornada;
+import cr.ac.una.eif509.demo.business.CostoJornadaService.SolicitudCostoJornada;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
-import java.util.Map;
 
 @RestController
 public class CostoJornadaController {
@@ -18,7 +19,7 @@ public class CostoJornadaController {
     }
 
     @GetMapping("/api/jornadas/costo")
-    public Map<String, Object> costoJornada(
+    public CostoJornada costoJornada(
             @RequestParam(defaultValue = "1") int animales,
             @RequestParam(defaultValue = "1") double pesoPromedioKg,
             @RequestParam(defaultValue = "1") double dosisMlPorKg,
@@ -29,7 +30,7 @@ public class CostoJornadaController {
             @RequestParam(defaultValue = "0") BigDecimal veterinario,
             @RequestParam(defaultValue = "0") BigDecimal otros
     ) {
-        return costoJornadaService.calcularCostoJornada(
+        return costoJornadaService.calcularCostoJornada(new SolicitudCostoJornada(
                 animales,
                 pesoPromedioKg,
                 dosisMlPorKg,
@@ -39,6 +40,6 @@ public class CostoJornadaController {
                 transporte,
                 veterinario,
                 otros
-        );
+        ));
     }
 }

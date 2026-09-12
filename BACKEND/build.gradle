@@ -1,0 +1,50 @@
+// ============================================================
+//  EIF509 · Esqueleto de referencia · build.gradle (Groovy)
+//  Java 21 + Spring Boot 3 + Gradle
+// ============================================================
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.2'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'cr.ac.una'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        // Java 21: el compilador y runtime que exige el curso
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Web: para exponer endpoints HTTP (nuestra capa de presentación)
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    // Actuator: nos regala /actuator/health para monitorear la app
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    // Persistencia relacional para PostgreSQL
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // Migraciones versionadas del esquema relacional
+    implementation 'org.flywaydb:flyway-core'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
+    // Persistencia documental para MongoDB
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    // Driver de PostgreSQL
+    runtimeOnly 'org.postgresql:postgresql'
+    // H2 para arranque local y pruebas sin depender del contenedor de BD
+    runtimeOnly 'com.h2database:h2'
+    // Pruebas: JUnit 5 viene incluido en este starter
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.testcontainers:junit-jupiter:1.20.6'
+    testImplementation 'org.testcontainers:postgresql:1.20.6'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

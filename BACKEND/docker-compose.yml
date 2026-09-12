@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: ganado-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ganado_db
+      POSTGRES_USER: ganado_user
+      POSTGRES_PASSWORD: ganado_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ganado_user -d ganado_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mongo:
+    image: mongo:7
+    container_name: ganado-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.runCommand({ ping: 1 }).ok\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
+  mongo_data:

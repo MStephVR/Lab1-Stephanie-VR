@@ -5,7 +5,11 @@
 ## Contexto
 El sistema debe permitir que el ganadero calcule el costo de una campaña sanitaria ANTES de ejecutarla, y además, necesita sugerencias de optimización: qué marcas alternativas podrían usar para ahorrar dinero sin comprometer la calidad sanitaria. Este es un requisito clave para el negocio: las ganancias en ganadería son estrechas, y cada ahorro en medicamentos impacta directamente la rentabilidad.
 
-Sin embargo, el equipo es pequeño (1 persona) y el tiempo es limitado (un ciclo académico). Implementar un motor de recomendación sofisticado o depender de APIs externas en tiempo real sería inviable en este plazo. Se necesitaba algo pragmático pero útil.
+Sin embargo, María Stephanie Vargas Ramírez desarrolla el proyecto de forma
+individual y el tiempo es limitado a un ciclo académico. Entrenar y mantener
+un modelo de recomendación, o depender de APIs externas en tiempo real, sería
+inviable en este plazo. Se necesitaba una solución pragmática, útil y
+verificable.
 
 ## Decisión
 El asistente:
@@ -14,12 +18,16 @@ El asistente:
 3. Aplica filtros de negocio: solo recomienda si eficacia ≥ 95%, plazo de entrega ≤ 3 días, ahorro ≥ 5%.
 4. Devuelve un reporte JSON con tabla comparativa: producto actual vs. alternativas + ahorro potencial.
 
-La "inteligencia" es lógica determinista basada en criterios claros, no predicción.
+La "inteligencia" es lógica determinista basada en criterios claros; no usa
+un modelo de aprendizaje automático ni realiza predicciones.
 
 ## Alternativas consideradas
 
-1. **Motor predictivo con dependencias externas:**
-   - Generar predicciones de mejores productos.
+1. **Modelo de aprendizaje automático entrenado:**
+    - Requería datos históricos confiables y etiquetados sobre eficacia, precios,
+       entregas y resultados sanitarios, que el sistema aún no posee.
+    - Su entrenamiento, evaluación y seguimiento añadirían complejidad sin
+       garantizar recomendaciones explicables para el ganadero.
 
 2. **Integración con APIs de proveedores reales (HTTP calls a sistemas externos):**
    -  Descartado: proveedores no exponen APIs públicas para esto; requeriría negociaciones comerciales, manejo de errores de conectividad, costos adicionales. La fuente de datos sería frágil e impredecible en un entorno educativo.

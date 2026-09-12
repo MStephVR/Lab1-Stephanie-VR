@@ -4,23 +4,27 @@
 
 ## Contexto
 Elegir el stack para construir una aplicación web empresarial
-durante el curso EIF509. El curso recomienda Java 21 + Spring Boot 3 + Gradle,
-y el equipo ya tiene experiencia básica en Java. El tiempo es limitado
-(un ciclo) y la aplicación debe crecer de forma incremental laboratorio a
-laboratorio.
+durante el curso EIF509. El sistema SisGanado necesita una API REST para
+administrar animales, inventario, jornadas sanitarias y sus costos, con
+persistencia relacional y registros de auditoría documentales. María Stephanie
+Vargas Ramírez cuenta con experiencia básica en Java, y el tiempo disponible es
+un ciclo académico; por ello, el proyecto debe poder crecer de forma
+incremental de un laboratorio a otro sin introducir herramientas ajenas al
+material del curso.
 
 ## Decisión
-Java 21 + Spring Boot 3 + Gradle (Groovy) como stack principal,
-siguiendo la recomendación del curso.
+Java 21 + Spring Boot 3 + Gradle (Groovy) como stack principal. Spring Boot
+permite concentrar las reglas sanitarias y de cálculo de costos en servicios
+probables, exponerlos mediante controladores REST y conectar PostgreSQL y
+MongoDB con el ecosistema que se estudia en el curso.
 
 ## Alternativas consideradas
-1. **Node.js + Express:** más liviano y rápido de arrancar, pero el equipo
-   tiene menos experiencia y el curso está diseñado alrededor del ecosistema
-   Spring (JPA, inyección de dependencias). Se descartó por alineación con el
-   curso y curva de aprendizaje.
+1. **Node.js + Express:** más liviano y rápido de arrancar, pero requería
+  adoptar un lenguaje y un ecosistema nuevos mientras se implementan las
+  reglas de dosificación, inventario y costos.
 2. **Java + Maven (en vez de Gradle):** Maven es igual de válido, pero Gradle
-   tiene una sintaxis más concisa y es lo que usan los ejemplos del curso.
-   Se descartó Maven por consistencia con el material.
+  tiene una sintaxis más concisa y coincide con los ejemplos del curso. Se
+  descartó Maven para reutilizar la configuración y comandos ya conocidos.
 
 ## Consecuencias
 - **Positivas:** se aprovecha el ecosistema maduro de Spring (seguridad, datos,

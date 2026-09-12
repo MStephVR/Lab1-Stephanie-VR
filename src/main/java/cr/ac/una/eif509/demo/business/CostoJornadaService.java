@@ -9,16 +9,28 @@ import java.math.RoundingMode;
 public class CostoJornadaService {
 
     public record SolicitudCostoJornada(
-            int cantidadAnimales,
-            double pesoPromedioKg,
-            double dosisMlPorKg,
-            double contenidoMlPorUnidad,
+                        Integer animales,
+                        Double pesoPromedioKg,
+                        Double dosisMlPorKg,
+                        Double contenidoMlPorUnidad,
             BigDecimal precioProducto,
             BigDecimal manoObra,
             BigDecimal transporte,
             BigDecimal veterinario,
             BigDecimal otros
-    ) { }
+        ) {
+                public SolicitudCostoJornada {
+                        animales = animales == null ? 1 : animales;
+                        pesoPromedioKg = pesoPromedioKg == null ? 1 : pesoPromedioKg;
+                        dosisMlPorKg = dosisMlPorKg == null ? 1 : dosisMlPorKg;
+                        contenidoMlPorUnidad = contenidoMlPorUnidad == null ? 1 : contenidoMlPorUnidad;
+                        precioProducto = precioProducto == null ? BigDecimal.ZERO : precioProducto;
+                        manoObra = manoObra == null ? BigDecimal.ZERO : manoObra;
+                        transporte = transporte == null ? BigDecimal.ZERO : transporte;
+                        veterinario = veterinario == null ? BigDecimal.ZERO : veterinario;
+                        otros = otros == null ? BigDecimal.ZERO : otros;
+                }
+        }
 
     public record CostoJornada(
             int cantidadAnimales,
@@ -37,7 +49,7 @@ public class CostoJornadaService {
     ) { }
 
     public CostoJornada calcularCostoJornada(SolicitudCostoJornada solicitud) {
-        int animales = Math.max(1, solicitud.cantidadAnimales());
+                int animales = Math.max(1, solicitud.animales());
         double dosisPorAnimal = solicitud.pesoPromedioKg() * solicitud.dosisMlPorKg();
         double dosisTotal = dosisPorAnimal * animales;
         double unidadesRequeridas = solicitud.contenidoMlPorUnidad() <= 0

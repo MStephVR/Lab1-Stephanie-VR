@@ -6,9 +6,6 @@ Proyecto **Spring Boot 3 + Java 21 + Gradle** organizado por capas, como base
 para administrar la información sanitaria del ganado, controlar inventario de
 productos veterinarios y calcular costos de vacunación y desparasitación.
 
-> ⚠️ **Este repo es un esqueleto de referencia del proyecto.** La idea es que
-> la estructura, nombres y módulos reflejen el dominio: animales, lotes,
-> productos veterinarios, inventario, jornadas sanitarias y costos.
 
 - **Integrante:** Stephanie VR
 - **Sistema:** SisGanado v1.0 - Control Sanitario y de Costos para Ganado, para

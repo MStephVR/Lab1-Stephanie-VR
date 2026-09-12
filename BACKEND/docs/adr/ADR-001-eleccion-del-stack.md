@@ -6,10 +6,8 @@
 Elegir el stack para construir una aplicación web empresarial
 durante el curso EIF509. El sistema SisGanado necesita una API REST para
 administrar animales, inventario, jornadas sanitarias y sus costos, con
-persistencia relacional y registros de auditoría documentales. María Stephanie
-Vargas Ramírez cuenta con experiencia básica en Java, y el tiempo disponible es
-un ciclo académico; por ello, el proyecto debe poder crecer de forma
-incremental de un laboratorio a otro sin introducir herramientas ajenas al
+persistencia relacional y registros de auditoría documentales. Cuento con experiencia básica en Java, actualmente el equipo es solo de un integrante (mi persona), y el tiempo disponible es
+un ciclo académico; por ello, se toma la decision de no introducir herramientas ajenas al
 material del curso.
 
 ## Decisión

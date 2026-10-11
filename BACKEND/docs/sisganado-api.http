@@ -1,0 +1,358 @@
+@baseUrl = http://localhost:8080
+@token = {{login.response.body.accessToken}}
+@jornadaId = 1
+@loteId = 1
+@planId = 1
+@animalId = 1
+@productoId = 1
+@inventarioId = 1
+@proveedorId = 1
+@compraId = 1
+
+### Obtener token admin (credenciales de desarrollo; reemplazar por variables de entorno fuera de local)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "AdminLocal2026!"
+}
+
+### Obtener token veterinario
+# @name loginVeterinario
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "veterinario",
+  "password": "VetLocal2026!"
+}
+
+### Crear lote (201 + Location; requiere ADMIN)
+POST {{baseUrl}}/api/v1/lotes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Lote Nuevo",
+  "ubicacion": "Finca",
+  "proposito": "Sanidad",
+  "activo": true
+}
+
+### Listar lotes paginados, ordenados por nombre descendente
+GET {{baseUrl}}/api/v1/lotes?page=0&size=10&sort=nombre,desc
+Authorization: Bearer {{token}}
+
+### Crear animal (requiere ADMIN)
+POST {{baseUrl}}/api/v1/animales
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "codigoArete": "A-100",
+  "raza": "Brahman",
+  "sexo": "Hembra",
+  "pesoKg": 380,
+  "fechaNacimiento": "2024-01-15",
+  "estado": "Activo",
+  "loteId": {{loteId}}
+}
+
+### Filtrar animales por estado y raza con paginación y orden
+GET {{baseUrl}}/api/v1/animales?estado=Activo&raza=Brahman&page=0&size=20&sort=pesoKg,desc
+Authorization: Bearer {{token}}
+
+### Crear producto veterinario (requiere ADMIN)
+POST {{baseUrl}}/api/v1/productos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Vacuna ejemplo",
+  "tipo": "Vacuna",
+  "unidadMedida": "ml",
+  "dosisMinima": 0.5,
+  "dosisMaxima": 1.0,
+  "precioUnitario": 2500,
+  "contenidoMlPorUnidad": 100
+}
+
+### Filtrar productos por rango de precio
+GET {{baseUrl}}/api/v1/productos?precioMinimo=100&precioMaximo=5000&page=0&size=20&sort=precioUnitario,asc
+Authorization: Bearer {{token}}
+
+### Crear inventario (requiere ADMIN)
+POST {{baseUrl}}/api/v1/inventarios
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "productoId": 1,
+  "loteFabricacion": "FAB-2026-01",
+  "fechaVencimiento": "2027-12-31",
+  "cantidadDisponible": 50,
+  "costoUnitario": 2500
+}
+
+### Listar inventario paginado y ordenado por vencimiento
+GET {{baseUrl}}/api/v1/inventarios?page=0&size=20&sort=fechaVencimiento,asc
+Authorization: Bearer {{token}}
+
+### Crear plan sanitario con sus productos (requiere ADMIN)
+POST {{baseUrl}}/api/v1/planes-sanitarios
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Plan preventivo",
+  "descripcion": "Vacunación anual",
+  "edadObjetivoMeses": 12,
+  "productosIds": [1]
+}
+
+### Listar planes sanitarios paginados
+GET {{baseUrl}}/api/v1/planes-sanitarios?page=0&size=20&sort=nombre,asc
+Authorization: Bearer {{token}}
+
+### Crear proveedor (requiere ADMIN)
+POST {{baseUrl}}/api/v1/proveedores
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Proveedor Veterinario",
+  "telefono": "8888-1111",
+  "correo": "ventas@example.test"
+}
+
+### Listar proveedores
+GET {{baseUrl}}/api/v1/proveedores?page=0&size=20&sort=nombre,asc
+Authorization: Bearer {{token}}
+
+### Registrar compra (requiere ADMIN)
+POST {{baseUrl}}/api/v1/compras
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "proveedorId": 1,
+  "fechaCompra": "2026-10-11",
+  "total": 125000
+}
+
+### Listar compras ordenadas por fecha descendente
+GET {{baseUrl}}/api/v1/compras?page=0&size=20&sort=fechaCompra,desc
+Authorization: Bearer {{token}}
+
+### Planificar jornada sanitaria (201 + Location; propietario = usuario autenticado)
+POST {{baseUrl}}/api/v1/jornadas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "loteId": {{loteId}},
+  "planId": {{planId}},
+  "fecha": "2026-10-11",
+  "descripcion": "Vacunación preventiva"
+}
+
+### Listar jornadas propias paginadas, con orden
+GET {{baseUrl}}/api/v1/jornadas?page=0&size=20&sort=fecha,desc
+Authorization: Bearer {{token}}
+
+### Consultar jornada propia
+GET {{baseUrl}}/api/v1/jornadas/{{jornadaId}}
+Authorization: Bearer {{token}}
+
+### Ejecutar jornada propia
+POST {{baseUrl}}/api/v1/jornadas/{{jornadaId}}/ejecucion
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "animales": [1],
+  "productos": [
+    {
+      "productoId": 1,
+      "dosisMlPorKg": 0.5,
+      "observacion": "Aplicación preventiva"
+    }
+  ]
+}
+
+### Calcular costo estimado de jornada
+GET {{baseUrl}}/api/v1/costos/jornada?cantidadAnimales=10&pesoPromedioKg=380&dosisMlPorKg=0.8&contenidoMlPorUnidad=10&precioProducto=12500&manoObra=25000&transporte=10000&veterinario=35000&otros=5000
+Authorization: Bearer {{token}}
+
+### Procesar costo de jornada propia
+POST {{baseUrl}}/api/v1/jornadas/{{jornadaId}}/costo
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "manoObra": 25000,
+  "transporte": 10000,
+  "veterinario": 35000,
+  "otros": 5000
+}
+
+### Rol insuficiente: acceso denegado al endpoint administrativo con JWT de veterinario (403)
+GET {{baseUrl}}/api/v1/admin/usuarios
+Authorization: Bearer {{loginVeterinario.response.body.accessToken}}
+
+### Consultar, actualizar y eliminar lote
+GET {{baseUrl}}/api/v1/lotes/{{loteId}}
+Authorization: Bearer {{token}}
+
+PUT {{baseUrl}}/api/v1/lotes/{{loteId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Lote Actualizado",
+  "ubicacion": "Finca",
+  "proposito": "Sanidad",
+  "activo": true
+}
+
+DELETE {{baseUrl}}/api/v1/lotes/{{loteId}}
+Authorization: Bearer {{token}}
+
+### Consultar, actualizar y eliminar animal
+GET {{baseUrl}}/api/v1/animales/{{animalId}}
+Authorization: Bearer {{token}}
+
+PUT {{baseUrl}}/api/v1/animales/{{animalId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "codigoArete": "A-100",
+  "raza": "Brahman",
+  "sexo": "Hembra",
+  "pesoKg": 390,
+  "fechaNacimiento": "2024-01-15",
+  "estado": "Activo",
+  "loteId": {{loteId}}
+}
+
+DELETE {{baseUrl}}/api/v1/animales/{{animalId}}
+Authorization: Bearer {{token}}
+
+### Consultar, actualizar y eliminar producto
+GET {{baseUrl}}/api/v1/productos/{{productoId}}
+Authorization: Bearer {{token}}
+
+PUT {{baseUrl}}/api/v1/productos/{{productoId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Vacuna ejemplo actualizada",
+  "tipo": "Vacuna",
+  "unidadMedida": "ml",
+  "dosisMinima": 0.5,
+  "dosisMaxima": 1.0,
+  "precioUnitario": 2500,
+  "contenidoMlPorUnidad": 100
+}
+
+DELETE {{baseUrl}}/api/v1/productos/{{productoId}}
+Authorization: Bearer {{token}}
+
+### Consultar, actualizar y eliminar inventario
+GET {{baseUrl}}/api/v1/inventarios/{{inventarioId}}
+Authorization: Bearer {{token}}
+
+PUT {{baseUrl}}/api/v1/inventarios/{{inventarioId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "productoId": {{productoId}},
+  "loteFabricacion": "FAB-2026-01",
+  "fechaVencimiento": "2027-12-31",
+  "cantidadDisponible": 45,
+  "costoUnitario": 2500
+}
+
+DELETE {{baseUrl}}/api/v1/inventarios/{{inventarioId}}
+Authorization: Bearer {{token}}
+
+### Consultar, actualizar y eliminar plan sanitario
+GET {{baseUrl}}/api/v1/planes-sanitarios/{{planId}}
+Authorization: Bearer {{token}}
+
+PUT {{baseUrl}}/api/v1/planes-sanitarios/{{planId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Plan preventivo actualizado",
+  "descripcion": "Vacunación anual",
+  "edadObjetivoMeses": 12,
+  "productosIds": [{{productoId}}]
+}
+
+DELETE {{baseUrl}}/api/v1/planes-sanitarios/{{planId}}
+Authorization: Bearer {{token}}
+
+### Consultar, actualizar y eliminar proveedor
+GET {{baseUrl}}/api/v1/proveedores/{{proveedorId}}
+Authorization: Bearer {{token}}
+
+PUT {{baseUrl}}/api/v1/proveedores/{{proveedorId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Proveedor Veterinario Actualizado",
+  "telefono": "8888-1111",
+  "correo": "ventas@example.test"
+}
+
+DELETE {{baseUrl}}/api/v1/proveedores/{{proveedorId}}
+Authorization: Bearer {{token}}
+
+### Consultar, actualizar y eliminar compra
+GET {{baseUrl}}/api/v1/compras/{{compraId}}
+Authorization: Bearer {{token}}
+
+PUT {{baseUrl}}/api/v1/compras/{{compraId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "proveedorId": {{proveedorId}},
+  "fechaCompra": "2026-10-11",
+  "total": 135000
+}
+
+DELETE {{baseUrl}}/api/v1/compras/{{compraId}}
+Authorization: Bearer {{token}}
+
+### Consultar las aplicaciones registradas en la jornada propia
+GET {{baseUrl}}/api/v1/jornadas/{{jornadaId}}/aplicaciones
+Authorization: Bearer {{token}}
+
+### Resumen de control ganadero
+GET {{baseUrl}}/api/v1/ganado/control?animales=10
+Authorization: Bearer {{token}}
+
+### Resumen de salud
+GET {{baseUrl}}/api/v1/ganado/salud?animales=10
+Authorization: Bearer {{token}}
+
+### Ejemplo de respuesta de validación de entrada (400, RFC 9457)
+POST {{baseUrl}}/api/v1/lotes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "",
+  "ubicacion": "Finca",
+  "proposito": "Sanidad",
+  "activo": true
+}

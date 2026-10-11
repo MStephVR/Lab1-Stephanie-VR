@@ -4,6 +4,7 @@ import cr.ac.una.eif509.demo.business.SaludService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import java.util.Map;
 
@@ -16,6 +17,7 @@ import java.util.Map;
  * El controlador conoce al servicio, pero el servicio NO conoce al controlador.
  */
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 public class SaludController {
 
     private final SaludService saludService;
@@ -25,7 +27,7 @@ public class SaludController {
         this.saludService = saludService;
     }
 
-    @GetMapping("/api/ganado/salud")
+    @GetMapping("/api/v1/ganado/salud")
     public Map<String, Object> controlDeGanado(@RequestParam(defaultValue = "1") int animales) {
         // El controlador delega: le pide el resumen a la capa de negocio.
         return saludService.resumenDelControl(animales);

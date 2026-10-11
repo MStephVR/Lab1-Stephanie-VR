@@ -75,11 +75,18 @@ En Windows, use `gradlew.bat` en lugar de `./gradlew`.
 # Verificar que la aplicación está disponible
 curl http://localhost:8080/actuator/health
 
-# Consultar el resumen sanitario
-curl "http://localhost:8080/api/ganado/control?animales=10"
+# Obtener un JWT local (cambie estas credenciales fuera de desarrollo)
+curl -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"AdminLocal2026!"}'
 
-# Calcular el costo de una jornada
-curl "http://localhost:8080/api/jornadas/costo?animales=10&pesoPromedioKg=380&dosisMlPorKg=0.8&contenidoMlPorUnidad=10&precioProducto=12500&manoObra=25000&transporte=10000&veterinario=35000&otros=5000"
+# Sustituya <JWT> por accessToken del resultado del login
+curl http://localhost:8080/api/v1/ganado/control?animales=10 \
+  -H "Authorization: Bearer <JWT>"
+
+# Calcular el costo estimado de una jornada
+curl "http://localhost:8080/api/v1/costos/jornada?cantidadAnimales=10&pesoPromedioKg=380&dosisMlPorKg=0.8&contenidoMlPorUnidad=10&precioProducto=12500&manoObra=25000&transporte=10000&veterinario=35000&otros=5000" \
+  -H "Authorization: Bearer <JWT>"
 ```
 
 ## Documentación
@@ -94,6 +101,53 @@ curl "http://localhost:8080/api/jornadas/costo?animales=10&pesoPromedioKg=380&do
 - `.gitignore` para Gradle, IDE y temporales.
 - CI en GitHub Actions para compilar en cada push.
 - ADR en `docs/adr/` con la decisión tecnológica.
+
+## API REST v1 (Laboratorio 5)
+
+La API versionada se publica bajo `/api/v1`; Swagger UI está disponible en
+`/swagger-ui/index.html` y el esquema OpenAPI en `/v3/api-docs`. La colección
+para VS Code REST Client está en [docs/sisganado-api.http](docs/sisganado-api.http).
+
+Antes de usar recursos protegidos, autentíquese con `POST /auth/login` y envíe
+el JWT recibido como `Authorization: Bearer <token>`. En perfiles `local`,
+`docker` y `test` se provisionan usuarios de demostración si no existen:
+`admin` (`SISGANADO_ADMIN_PASSWORD`) y `veterinario`
+(`SISGANADO_VETERINARIAN_PASSWORD`). Los valores por defecto son únicamente
+para desarrollo; cámbielos en cualquier entorno compartido.
+
+La administración del catálogo también cuenta con interfaz HTML en
+`/admin/productos`, disponible para `ADMIN` después de iniciar sesión en
+`/login`. Esta interfaz usa sesión de servidor y protección CSRF para sus
+formularios; se mantiene separada de la API REST, que continúa siendo stateless
+y autenticada exclusivamente mediante JWT.
+
+La firma JWT acepta `SISGANADO_JWT_SECRET` (mínimo 32 bytes). Los cambios de
+catálogo y el acceso a `/api/v1/admin/**` requieren `ADMIN`; los procesos
+sanitarios aceptan `ADMIN` o `VETERINARIO`. La API no crea sesiones y cada
+jornada planificada queda asociada al usuario autenticado; leerla, ejecutarla
+o costearla requiere ser su propietario. Un recurso ajeno se responde como
+404 para evitar revelar su existencia.
+
+| Recurso | Rutas principales | Acceso de escritura |
+| --- | --- | --- |
+| Animales | `/api/v1/animales`, `/api/v1/animales/{id}` | ADMIN |
+| Lotes | `/api/v1/lotes`, `/api/v1/lotes/{id}` | ADMIN |
+| Productos | `/api/v1/productos`, `/api/v1/productos/{id}` | ADMIN |
+| Inventario | `/api/v1/inventarios`, `/api/v1/inventarios/{id}` | ADMIN |
+| Planes sanitarios | `/api/v1/planes-sanitarios`, `/api/v1/planes-sanitarios/{id}` | ADMIN |
+| Proveedores | `/api/v1/proveedores`, `/api/v1/proveedores/{id}` | ADMIN |
+| Compras | `/api/v1/compras`, `/api/v1/compras/{id}` | ADMIN |
+| Jornadas sanitarias | `/api/v1/jornadas`, `/api/v1/jornadas/{id}` | ADMIN/VETERINARIO |
+| Ejecución | `/api/v1/jornadas/{id}/ejecucion` | ADMIN/VETERINARIO, propietario |
+| Costeo | `/api/v1/jornadas/{id}/costo` | ADMIN/VETERINARIO, propietario |
+
+Las colecciones de animales, lotes, productos, inventarios, planes, compras,
+proveedores y jornadas propias aceptan `page`, `size` y `sort=propiedad,direccion`;
+las respuestas usan la forma estable `content` + `page` de `PagedModel`.
+Los animales aceptan `estado` y
+`raza`; los productos `precioMinimo` y `precioMaximo`, implementados con
+Spring Data Specifications. Los errores de validación y de negocio se devuelven
+como `application/problem+json` (RFC 9457).
 
 ## Entidades de negocio
 

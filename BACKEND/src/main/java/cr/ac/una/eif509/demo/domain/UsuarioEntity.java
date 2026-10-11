@@ -15,6 +15,10 @@ public class UsuarioEntity {
     private String rol;
     @Column(nullable = false)
     private Boolean activo = true;
+    @Column(length = 80, unique = true)
+    private String username;
+    @Column(name = "password_hash", length = 100)
+    private String passwordHash;
     @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY)
     private List<JornadaSanitariaEntity> jornadas = new ArrayList<>();
 
@@ -30,5 +34,9 @@ public class UsuarioEntity {
     public void setRol(String rol) { this.rol = rol; }
     public Boolean getActivo() { return activo; }
     public void setActivo(Boolean activo) { this.activo = activo; }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public List<JornadaSanitariaEntity> getJornadas() { return jornadas; }
 }

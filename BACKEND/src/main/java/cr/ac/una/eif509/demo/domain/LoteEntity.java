@@ -17,6 +17,8 @@ public class LoteEntity {
 
     private String ubicacion;
     private String proposito;
+    @Column(nullable = false)
+    private boolean activo = true;
 
     @OneToMany(mappedBy = "lote", fetch = FetchType.LAZY)
     private List<AnimalEntity> animales = new ArrayList<>();
@@ -60,6 +62,14 @@ public class LoteEntity {
 
     public void setProposito(String proposito) {
         this.proposito = proposito;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 
     public List<AnimalEntity> getAnimales() {

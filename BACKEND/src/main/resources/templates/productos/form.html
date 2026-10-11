@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${productoId == null ? 'Nuevo producto' : 'Editar producto'} + ' · SisGanado'">Producto · SisGanado</title>
+  <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+<nav th:replace="~{fragmentos :: menu}"></nav>
+<main class="form-main">
+  <a class="volver" th:href="@{/admin/productos}">← Volver al catálogo</a>
+  <p class="eyebrow">CATÁLOGO SANITARIO</p>
+  <h1 th:text="${productoId == null ? 'Nuevo producto veterinario' : 'Editar producto veterinario'}">Producto</h1>
+  <p class="muted">Los datos de presentación se usan para calcular dosis y consumo de inventario.</p>
+  <form class="panel formulario" method="post" novalidate
+        th:object="${form}"
+        th:action="${productoId == null} ? @{/admin/productos} : @{/admin/productos/{id}(id=${productoId})}">
+    <p class="resumen-errores" role="alert" th:if="${#fields.hasAnyErrors()}">
+      Hay errores en los campos marcados. Corrígelos e intenta de nuevo.
+    </p>
+    <div class="campos">
+      <label class="ancho-completo">Nombre del producto
+        <input type="text" th:field="*{nombre}" th:errorclass="campo-error" maxlength="160" required>
+        <span class="error" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}">Error</span>
+      </label>
+      <label>Tipo
+        <input type="text" th:field="*{tipo}" th:errorclass="campo-error" maxlength="80" required>
+        <span class="error" th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}">Error</span>
+      </label>
+      <label>Unidad de medida
+        <input type="text" th:field="*{unidadMedida}" th:errorclass="campo-error" maxlength="30" required>
+        <span class="error" th:if="${#fields.hasErrors('unidadMedida')}" th:errors="*{unidadMedida}">Error</span>
+      </label>
+      <label>Dosis mínima (ml/kg)
+        <input type="number" th:field="*{dosisMinima}" th:errorclass="campo-error" min="0" step="0.01">
+        <span class="ayuda">Opcional</span>
+        <span class="error" th:if="${#fields.hasErrors('dosisMinima')}" th:errors="*{dosisMinima}">Error</span>
+      </label>
+      <label>Dosis máxima (ml/kg)
+        <input type="number" th:field="*{dosisMaxima}" th:errorclass="campo-error" min="0" step="0.01">
+        <span class="ayuda">Opcional</span>
+        <span class="error" th:if="${#fields.hasErrors('dosisMaxima')}" th:errors="*{dosisMaxima}">Error</span>
+      </label>
+      <label>Precio unitario (₡)
+        <input type="number" th:field="*{precioUnitario}" th:errorclass="campo-error" min="0" step="0.01" required>
+        <span class="error" th:if="${#fields.hasErrors('precioUnitario')}" th:errors="*{precioUnitario}">Error</span>
+      </label>
+      <label>Contenido por unidad (ml)
+        <input type="number" th:field="*{contenidoMlPorUnidad}" th:errorclass="campo-error" min="0.001" step="0.001" required>
+        <span class="error" th:if="${#fields.hasErrors('contenidoMlPorUnidad')}" th:errors="*{contenidoMlPorUnidad}">Error</span>
+      </label>
+    </div>
+    <div class="acciones-form">
+      <button class="boton" type="submit">Guardar producto</button>
+      <a class="boton secundario" th:href="@{/admin/productos}">Cancelar</a>
+    </div>
+  </form>
+</main>
+</body>
+</html>

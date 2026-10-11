@@ -8,8 +8,14 @@ public final class BusinessSpecifications {
     private BusinessSpecifications() { }
 
     public static Specification<AnimalEntity> animalesActivosDeRaza(String raza) {
+        return animalesPorEstadoYRaza("Activo", raza);
+    }
+
+    public static Specification<AnimalEntity> animalesPorEstadoYRaza(String estado, String raza) {
         return (root, query, builder) -> builder.and(
-                builder.equal(root.get("estado"), "Activo"),
+                estado == null || estado.isBlank()
+                        ? builder.conjunction()
+                        : builder.equal(builder.lower(root.get("estado")), estado.toLowerCase()),
                 raza == null || raza.isBlank()
                         ? builder.conjunction()
                         : builder.equal(builder.lower(root.get("raza")), raza.toLowerCase())

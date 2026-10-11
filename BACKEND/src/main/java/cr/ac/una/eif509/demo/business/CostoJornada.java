@@ -8,7 +8,7 @@ public record CostoJornada(
         double dosisMlPorKg,
         double dosisPorAnimal,
         double dosisTotal,
-        double unidadesRequeridas,
+        int unidadesRequeridas,
         BigDecimal costoProducto,
         BigDecimal manoObra,
         BigDecimal transporte,

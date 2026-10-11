@@ -24,6 +24,8 @@ public class ProductoVeterinarioEntity {
     private Double dosisMaxima;
     @Column(name = "precio_unitario", precision = 12, scale = 2)
     private BigDecimal precioUnitario;
+    @Column(name = "contenido_ml_por_unidad", nullable = false)
+    private Double contenidoMlPorUnidad;
     @OneToMany(mappedBy = "producto", fetch = FetchType.LAZY)
     private List<InventarioEntity> inventarios = new ArrayList<>();
     @OneToMany(mappedBy = "producto", fetch = FetchType.LAZY)
@@ -33,7 +35,13 @@ public class ProductoVeterinarioEntity {
 
     protected ProductoVeterinarioEntity() { }
     public ProductoVeterinarioEntity(String nombre, String tipo, String unidadMedida, Double dosisMinima, Double dosisMaxima, BigDecimal precioUnitario) {
-        this.nombre = nombre; this.tipo = tipo; this.unidadMedida = unidadMedida; this.dosisMinima = dosisMinima; this.dosisMaxima = dosisMaxima; this.precioUnitario = precioUnitario;
+        this(nombre, tipo, unidadMedida, dosisMinima, dosisMaxima, precioUnitario, 1.0);
+    }
+    public ProductoVeterinarioEntity(String nombre, String tipo, String unidadMedida, Double dosisMinima,
+                                     Double dosisMaxima, BigDecimal precioUnitario, Double contenidoMlPorUnidad) {
+        this.nombre = nombre; this.tipo = tipo; this.unidadMedida = unidadMedida; this.dosisMinima = dosisMinima;
+        this.dosisMaxima = dosisMaxima; this.precioUnitario = precioUnitario;
+        this.contenidoMlPorUnidad = contenidoMlPorUnidad;
     }
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -49,6 +57,8 @@ public class ProductoVeterinarioEntity {
     public void setDosisMaxima(Double value) { this.dosisMaxima = value; }
     public BigDecimal getPrecioUnitario() { return precioUnitario; }
     public void setPrecioUnitario(BigDecimal value) { this.precioUnitario = value; }
+    public Double getContenidoMlPorUnidad() { return contenidoMlPorUnidad; }
+    public void setContenidoMlPorUnidad(Double value) { this.contenidoMlPorUnidad = value; }
     public List<InventarioEntity> getInventarios() { return inventarios; }
     public List<AplicacionSanitariaEntity> getAplicaciones() { return aplicaciones; }
     public Set<PlanSanitarioEntity> getPlanes() { return planes; }

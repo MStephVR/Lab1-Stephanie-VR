@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Iniciar sesión · SisGanado</title>
+  <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body class="pagina-login">
+<main class="login">
+  <h1>SisGanado</h1>
+  <p>Administración del catálogo veterinario</p>
+  <p class="error resumen-errores" th:if="${param.error}">Usuario o contraseña inválidos.</p>
+  <p class="ok" th:if="${param.salida}">La sesión se cerró correctamente.</p>
+  <form class="formulario" th:action="@{/login}" method="post">
+    <label>Usuario
+      <input type="text" name="username" autocomplete="username" required autofocus>
+    </label>
+    <label>Contraseña
+      <input type="password" name="password" autocomplete="current-password" required>
+    </label>
+    <button class="boton" type="submit">Iniciar sesión</button>
+  </form>
+</main>
+</body>
+</html>

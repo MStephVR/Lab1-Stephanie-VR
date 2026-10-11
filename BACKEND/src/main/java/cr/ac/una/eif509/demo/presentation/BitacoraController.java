@@ -8,12 +8,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import java.util.List;
 
 @RestController
 @Profile({"local", "docker"})
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
+@SecurityRequirement(name = "bearerAuth")
 public class BitacoraController {
 
     private final BitacoraService bitacoraService;
@@ -23,11 +26,13 @@ public class BitacoraController {
     }
 
     @GetMapping("/bitacora")
+    @PreAuthorize("hasRole('ADMIN')")
     public List<BitacoraEvento> listarBitacora() {
         return bitacoraService.consultarUltimosEventos();
     }
 
     @PostMapping("/bitacora")
+    @PreAuthorize("hasRole('ADMIN')")
     public BitacoraEvento registrarEvento(
             @RequestParam String entidad,
             @RequestParam String accion,

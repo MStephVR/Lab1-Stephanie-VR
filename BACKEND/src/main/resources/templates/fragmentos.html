@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<nav class="menu" th:fragment="menu">
+  <a class="marca" th:href="@{/admin/productos}">SisGanado · Administración</a>
+  <a th:href="@{/admin/productos}">Productos veterinarios</a>
+  <a th:href="@{/admin/productos/nuevo}">Nuevo producto</a>
+  <span class="usuario" sec:authorize="isAuthenticated()">
+    <span sec:authentication="name">admin</span>
+    <form th:action="@{/logout}" method="post">
+      <button class="enlace" type="submit">Cerrar sesión</button>
+    </form>
+  </span>
+</nav>
+</body>
+</html>

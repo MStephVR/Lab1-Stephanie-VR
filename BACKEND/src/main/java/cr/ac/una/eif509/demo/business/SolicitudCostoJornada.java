@@ -1,27 +1,20 @@
 package cr.ac.una.eif509.demo.business;
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
 import java.math.BigDecimal;
 
 public record SolicitudCostoJornada(
-        Integer cantidadAnimales,
-        Double pesoPromedioKg,
-        Double dosisMlPorKg,
-        Double contenidoMlPorUnidad,
-        BigDecimal precioProducto,
-        BigDecimal manoObra,
-        BigDecimal transporte,
-        BigDecimal veterinario,
-        BigDecimal otros
+        @NotNull @Min(1) Integer cantidadAnimales,
+        @NotNull @DecimalMin(value = "0.01") Double pesoPromedioKg,
+        @NotNull @DecimalMin(value = "0.01") Double dosisMlPorKg,
+        @NotNull @DecimalMin(value = "0.01") Double contenidoMlPorUnidad,
+        @NotNull @DecimalMin(value = "0.00") BigDecimal precioProducto,
+        @NotNull @DecimalMin(value = "0.00") BigDecimal manoObra,
+        @NotNull @DecimalMin(value = "0.00") BigDecimal transporte,
+        @NotNull @DecimalMin(value = "0.00") BigDecimal veterinario,
+        @NotNull @DecimalMin(value = "0.00") BigDecimal otros
 ) {
-    public SolicitudCostoJornada {
-        cantidadAnimales = cantidadAnimales == null ? 1 : cantidadAnimales;
-        pesoPromedioKg = pesoPromedioKg == null ? 1 : pesoPromedioKg;
-        dosisMlPorKg = dosisMlPorKg == null ? 1 : dosisMlPorKg;
-        contenidoMlPorUnidad = contenidoMlPorUnidad == null ? 1 : contenidoMlPorUnidad;
-        precioProducto = precioProducto == null ? BigDecimal.ZERO : precioProducto;
-        manoObra = manoObra == null ? BigDecimal.ZERO : manoObra;
-        transporte = transporte == null ? BigDecimal.ZERO : transporte;
-        veterinario = veterinario == null ? BigDecimal.ZERO : veterinario;
-        otros = otros == null ? BigDecimal.ZERO : otros;
-    }
 }

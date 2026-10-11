@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Productos veterinarios · SisGanado</title>
+  <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+<nav th:replace="~{fragmentos :: menu}"></nav>
+<main>
+  <header class="acciones">
+    <div>
+      <p class="eyebrow">CATÁLOGO SANITARIO</p>
+      <h1>Productos veterinarios</h1>
+      <p class="muted">Administrá presentaciones y dosis usadas en las jornadas sanitarias.</p>
+    </div>
+    <a class="boton" th:href="@{/admin/productos/nuevo}">Agregar producto</a>
+  </header>
+
+  <p class="ok" role="status" th:if="${ok}" th:text="${ok}">Producto guardado.</p>
+  <section class="panel">
+    <p class="muted" th:unless="${pagina.empty}"
+       th:text="|${pagina.totalElements} productos en el catálogo|">Productos en catálogo</p>
+    <div class="tabla-contenedor" th:unless="${pagina.empty}">
+      <table>
+        <thead>
+        <tr>
+          <th>Producto</th><th>Tipo</th><th>Presentación</th>
+          <th class="numero">Precio unitario</th><th class="numero">Dosis (ml/kg)</th><th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="producto : ${pagina.content}">
+          <td class="nombre" th:text="${producto.nombre}">Vacuna</td>
+          <td th:text="${producto.tipo}">Vacuna</td>
+          <td th:text="|${producto.contenidoMlPorUnidad} ml / ${producto.unidadMedida}|">100 ml</td>
+          <td class="numero" th:text="${#numbers.formatDecimal(producto.precioUnitario, 1, 2)}">2500.00</td>
+          <td class="numero">
+            <span th:text="${producto.dosisMinima == null ? '—' : producto.dosisMinima}">—</span>
+            <span th:if="${producto.dosisMaxima != null}"
+                  th:text="| – ${producto.dosisMaxima}|"></span>
+          </td>
+          <td><a class="accion" th:href="@{/admin/productos/{id}(id=${producto.id})}">Editar</a></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="vacio" th:if="${pagina.empty}">Todavía no hay productos registrados.</p>
+    <nav class="paginacion" aria-label="Paginación" th:if="${pagina.totalPages > 1}">
+      <a th:if="${pagina.hasPrevious()}"
+         th:href="@{/admin/productos(page=${pagina.number - 1},size=${pagina.size},sort='id,desc')}">← Anterior</a>
+      <span th:text="|Página ${pagina.number + 1} de ${pagina.totalPages}|">Página 1 de 1</span>
+      <a th:if="${pagina.hasNext()}"
+         th:href="@{/admin/productos(page=${pagina.number + 1},size=${pagina.size},sort='id,desc')}">Siguiente →</a>
+    </nav>
+  </section>
+</main>
+</body>
+</html>

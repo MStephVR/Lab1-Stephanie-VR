@@ -30,13 +30,18 @@ jobs:                         # Un workflow tiene uno o más "jobs" (trabajos)
           distribution: 'temurin'
           java-version: '21'
           cache: gradle       # Guarda dependencias para que la próxima vez sea más rápido
+          cache-dependency-path: |
+            **/*.gradle*
+            **/gradle-wrapper.properties
 
       # Paso 3: dar permiso de ejecución al script de Gradle (necesario en Linux)
       - name: Dar permisos a gradlew
-        run: chmod +x ./gradlew
+        run: chmod +x ./gradlew ./BACKEND/gradlew
 
-      # Paso 4: compilar y correr las pruebas
-      #   "./gradlew build" compila, empaqueta y ejecuta los tests.
-      #   Si algo falla, el workflow se marca en ROJO. Si todo pasa, en VERDE.
-      - name: Compilar y probar
+      # Paso 4: conserva la verificación del proyecto raíz y valida el backend entregable.
+      - name: Compilar y probar proyecto raíz
         run: ./gradlew build
+
+      - name: Verificar backend (pruebas y cobertura)
+        working-directory: BACKEND
+        run: ./gradlew check

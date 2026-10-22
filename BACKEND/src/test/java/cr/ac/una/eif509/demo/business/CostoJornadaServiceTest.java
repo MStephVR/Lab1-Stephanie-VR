@@ -2,16 +2,18 @@ package cr.ac.una.eif509.demo.business;
 
 import cr.ac.una.eif509.demo.business.exception.ReglaNegocioException;
 import cr.ac.una.eif509.demo.data.AplicacionSanitariaRepository;
-import cr.ac.una.eif509.demo.data.InventarioRepository;
+import cr.ac.una.eif509.demo.data.JornadaConsumoInventarioRepository;
 import cr.ac.una.eif509.demo.data.JornadaSanitariaRepository;
+import cr.ac.una.eif509.demo.data.UsuarioRepository;
 import cr.ac.una.eif509.demo.domain.AnimalEntity;
 import cr.ac.una.eif509.demo.domain.AplicacionSanitariaEntity;
 import cr.ac.una.eif509.demo.domain.InventarioEntity;
+import cr.ac.una.eif509.demo.domain.JornadaConsumoInventarioEntity;
 import cr.ac.una.eif509.demo.domain.JornadaSanitariaEntity;
 import cr.ac.una.eif509.demo.domain.ProductoVeterinarioEntity;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -29,24 +31,32 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CostoJornadaServiceTest {
 
-    @Mock private CostoProductoStrategy costoProductoStrategy;
+    @Mock(name = "costoProductoStrategy") private CostoProductoStrategy costoProductoStrategy;
+    @Mock(name = "costoPorMililitroStrategy") private CostoProductoStrategy costoPorMililitroStrategy;
     @Mock private JornadaSanitariaRepository jornadaRepository;
     @Mock private AplicacionSanitariaRepository aplicacionRepository;
-    @Mock private InventarioRepository inventarioRepository;
-    @InjectMocks private CostoJornadaService service;
+    @Mock private JornadaConsumoInventarioRepository consumoRepository;
+    @Mock private UsuarioRepository usuarioRepository;
+    private CostoJornadaService service;
+
+    @BeforeEach
+    void setUp() {
+        service = new CostoJornadaService(costoProductoStrategy, costoPorMililitroStrategy,
+                jornadaRepository, aplicacionRepository, consumoRepository, usuarioRepository);
+    }
 
     @Test
     void calcularCostoJornada_calculaUnidadesRedondeadasYPromedio() {
         when(costoProductoStrategy.calcularUnidadesRequeridas(150.0, 100.0)).thenReturn(2);
-        when(costoProductoStrategy.calcularCostoProducto(new BigDecimal("2500.00"), 2))
-                .thenReturn(new BigDecimal("5000.00"));
+        when(costoPorMililitroStrategy.calcularCostoProducto(new BigDecimal("2500.00"), 150.0, 100.0))
+                .thenReturn(new BigDecimal("3750.00"));
 
         CostoJornada resultado = service.calcularCostoJornada(solicitudValida());
 
         assertEquals(2, resultado.unidadesRequeridas());
-        assertEquals(new BigDecimal("5000.00"), resultado.costoProducto());
-        assertEquals(new BigDecimal("5950.00"), resultado.costoTotal());
-        assertEquals(new BigDecimal("2975.00"), resultado.costoPromedioPorAnimal());
+        assertEquals(new BigDecimal("3750.00"), resultado.costoProducto());
+        assertEquals(new BigDecimal("4700.00"), resultado.costoTotal());
+        assertEquals(new BigDecimal("2350.00"), resultado.costoPromedioPorAnimal());
     }
 
     @Test
@@ -83,45 +93,69 @@ class CostoJornadaServiceTest {
     }
 
     @Test
-    void procesarCostoJornada_calculaCostosYDecrementaInventario() {
+    void procesarCostoJornada_calculaCostoDeLotesConsumidosSinVolverADescontarInventario() {
         JornadaSanitariaEntity jornada = jornada(20L, "EJECUTADA");
-        InventarioEntity inventario = inventario(8L, 10);
+        InventarioEntity inventario = inventario(8L, 0);
+        JornadaConsumoInventarioEntity consumo = new JornadaConsumoInventarioEntity(
+                jornada, inventario, 2, new BigDecimal("20.00"));
         when(jornadaRepository.findByIdForUpdate(20L)).thenReturn(Optional.of(jornada));
         when(aplicacionRepository.findByJornadaWithDetails(20L)).thenReturn(List.of(aplicacion(1L, 150.0)));
-        when(inventarioRepository.findDisponiblesPorProductoForUpdate(10L, LocalDate.now()))
-                .thenReturn(List.of(inventario));
-        when(costoProductoStrategy.calcularUnidadesRequeridas(150.0, 100.0)).thenReturn(2);
+        when(consumoRepository.findByJornadaWithInventory(20L)).thenReturn(List.of(consumo));
         when(costoProductoStrategy.calcularCostoProducto(new BigDecimal("20.00"), 2))
                 .thenReturn(new BigDecimal("40.00"));
 
         ProcesamientoCostoSalida salida = service.procesarCostoJornada(entradaCosto());
 
         assertEquals(new BigDecimal("290.00"), salida.costoTotal());
-        assertEquals(8, inventario.getCantidadDisponible());
+        assertEquals(0, inventario.getCantidadDisponible());
         assertEquals("COSTEADA", jornada.getEstado());
         assertEquals(new BigDecimal("290.00"), jornada.getCostoTotal());
         verify(jornadaRepository).saveAndFlush(jornada);
-        verify(inventarioRepository).saveAll(List.of(inventario));
+        verify(consumoRepository).findByJornadaWithInventory(20L);
     }
 
     @Test
     void procesarCostoJornada_rechazaJornadaNoEjecutada() {
         when(jornadaRepository.findByIdForUpdate(20L)).thenReturn(Optional.of(jornada(20L, "PLANIFICADA")));
         assertThrows(ReglaNegocioException.class, () -> service.procesarCostoJornada(entradaCosto()));
-        verify(inventarioRepository, never()).save(org.mockito.ArgumentMatchers.any());
+        verify(consumoRepository, never()).findByJornadaWithInventory(20L);
     }
 
     @Test
-    void procesarCostoJornada_rechazaInventarioInsuficiente() {
+    void procesarCostoJornada_rechazaJornadaSinConsumoRegistrado() {
         when(jornadaRepository.findByIdForUpdate(20L)).thenReturn(Optional.of(jornada(20L, "EJECUTADA")));
         when(aplicacionRepository.findByJornadaWithDetails(20L)).thenReturn(List.of(aplicacion(1L, 150.0)));
-        when(inventarioRepository.findDisponiblesPorProductoForUpdate(10L, LocalDate.now()))
-                .thenReturn(List.of(inventario(8L, 1)));
-        when(costoProductoStrategy.calcularUnidadesRequeridas(150.0, 100.0)).thenReturn(2);
+        when(consumoRepository.findByJornadaWithInventory(20L)).thenReturn(List.of());
 
         assertThrows(ReglaNegocioException.class, () -> service.procesarCostoJornada(entradaCosto()));
         verify(jornadaRepository, never()).saveAndFlush(org.mockito.ArgumentMatchers.any());
-        verify(inventarioRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void procesarCostoJornada_sumaProductosYCostosDeLotesDiferentes() {
+        JornadaSanitariaEntity jornada = jornada(20L, "EJECUTADA");
+        ProductoVeterinarioEntity segundoProducto = producto(11L, "30.00");
+        InventarioEntity primerLote = inventario(8L, 0);
+        InventarioEntity segundoLote = new InventarioEntity(
+                segundoProducto, "LOTE-SEGUNDO", LocalDate.now().plusDays(30), 4, new BigDecimal("30.00"));
+        List<JornadaConsumoInventarioEntity> consumos = List.of(
+                new JornadaConsumoInventarioEntity(jornada, primerLote, 2, new BigDecimal("20.00")),
+                new JornadaConsumoInventarioEntity(jornada, segundoLote, 1, new BigDecimal("30.00")));
+        when(jornadaRepository.findByIdForUpdate(20L)).thenReturn(Optional.of(jornada));
+        when(aplicacionRepository.findByJornadaWithDetails(20L)).thenReturn(List.of(
+                aplicacion(1L, 150.0, producto()),
+                aplicacion(1L, 75.0, segundoProducto)));
+        when(consumoRepository.findByJornadaWithInventory(20L)).thenReturn(consumos);
+        when(costoProductoStrategy.calcularCostoProducto(new BigDecimal("20.00"), 2))
+                .thenReturn(new BigDecimal("40.00"));
+        when(costoProductoStrategy.calcularCostoProducto(new BigDecimal("30.00"), 1))
+                .thenReturn(new BigDecimal("30.00"));
+
+        ProcesamientoCostoSalida salida = service.procesarCostoJornada(entradaCosto());
+
+        assertEquals(3, salida.unidadesConsumidas());
+        assertEquals(new BigDecimal("70.00"), salida.costoProducto());
+        assertEquals(new BigDecimal("320.00"), salida.costoTotal());
     }
 
     private SolicitudCostoJornada solicitudValida() {
@@ -153,18 +187,28 @@ class CostoJornadaServiceTest {
     }
 
     private AplicacionSanitariaEntity aplicacion(Long animalId, double dosis) {
+        return aplicacion(animalId, dosis, producto());
+    }
+
+    private AplicacionSanitariaEntity aplicacion(
+            Long animalId, double dosis, ProductoVeterinarioEntity producto
+    ) {
         AnimalEntity animal = new AnimalEntity(
                 "ARETE-" + animalId, "Brahman", "Hembra", 300.0,
                 LocalDate.of(2022, 1, 1), "Activo", null);
         animal.setId(animalId);
         return new AplicacionSanitariaEntity(
-                animal, producto(), null, LocalDate.now(), dosis, LocalDate.now().plusDays(7), null);
+                animal, producto, null, LocalDate.now(), dosis, LocalDate.now().plusDays(7), null);
     }
 
     private ProductoVeterinarioEntity producto() {
+        return producto(10L, "20.00");
+    }
+
+    private ProductoVeterinarioEntity producto(Long id, String costo) {
         ProductoVeterinarioEntity producto = new ProductoVeterinarioEntity(
-                "Vacuna", "Vacuna", "ml", 0.1, 1.0, new BigDecimal("20.00"), 100.0);
-        producto.setId(10L);
+                "Vacuna " + id, "Vacuna", "ml", 0.1, 1.0, new BigDecimal(costo), 100.0);
+        producto.setId(id);
         return producto;
     }
 }

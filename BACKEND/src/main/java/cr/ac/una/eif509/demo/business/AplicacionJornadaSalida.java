@@ -8,6 +8,14 @@ public record AplicacionJornadaSalida(
         LocalDate fechaAplicacion,
         Double dosisAplicada,
         LocalDate proximaFechaAplicacion,
-        String observacion
+        String observacion,
+        LocalDate fechaFinRetiroCarne,
+        LocalDate fechaFinRetiroLeche
 ) {
+    public AplicacionJornadaSalida(Long animalId, Long productoId, LocalDate fechaAplicacion,
+                                   Double dosisAplicada, LocalDate proximaFechaAplicacion,
+                                   String observacion) {
+        this(animalId, productoId, fechaAplicacion, dosisAplicada, proximaFechaAplicacion,
+                observacion, null, null);
+    }
 }

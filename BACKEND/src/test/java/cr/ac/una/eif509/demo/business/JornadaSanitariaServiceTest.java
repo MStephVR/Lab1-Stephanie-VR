@@ -4,6 +4,7 @@ import cr.ac.una.eif509.demo.business.exception.ReglaNegocioException;
 import cr.ac.una.eif509.demo.data.AnimalRepository;
 import cr.ac.una.eif509.demo.data.AplicacionSanitariaRepository;
 import cr.ac.una.eif509.demo.data.InventarioRepository;
+import cr.ac.una.eif509.demo.data.JornadaConsumoInventarioRepository;
 import cr.ac.una.eif509.demo.data.JornadaSanitariaRepository;
 import cr.ac.una.eif509.demo.data.LoteRepository;
 import cr.ac.una.eif509.demo.data.PlanSanitarioRepository;
@@ -11,6 +12,7 @@ import cr.ac.una.eif509.demo.data.ProductoVeterinarioRepository;
 import cr.ac.una.eif509.demo.domain.AnimalEntity;
 import cr.ac.una.eif509.demo.domain.AplicacionSanitariaEntity;
 import cr.ac.una.eif509.demo.domain.InventarioEntity;
+import cr.ac.una.eif509.demo.domain.JornadaConsumoInventarioEntity;
 import cr.ac.una.eif509.demo.domain.JornadaSanitariaEntity;
 import cr.ac.una.eif509.demo.domain.LoteEntity;
 import cr.ac.una.eif509.demo.domain.PlanSanitarioEntity;
@@ -31,6 +33,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,6 +45,7 @@ class JornadaSanitariaServiceTest {
     @Mock private AplicacionSanitariaRepository aplicacionRepository;
     @Mock private ProductoVeterinarioRepository productoRepository;
     @Mock private InventarioRepository inventarioRepository;
+    @Mock private JornadaConsumoInventarioRepository consumoRepository;
     @Mock private LoteRepository loteRepository;
     @Mock private PlanSanitarioRepository planRepository;
     @Mock private AnimalRepository animalRepository;
@@ -109,18 +113,25 @@ class JornadaSanitariaServiceTest {
         InventarioEntity inventario = inventario(10, 100.0);
         when(jornadaRepository.findByIdForUpdate(20L)).thenReturn(Optional.of(jornada));
         when(animalRepository.findByLoteId(1L)).thenReturn(List.of(animal(1L, 300.0, "Activo")));
-        when(productoRepository.findById(10L)).thenReturn(Optional.of(producto()));
+        ProductoVeterinarioEntity producto = producto();
+        producto.setRetiroCarneDias(21);
+        producto.setRetiroLecheDias(3);
+        when(productoRepository.findById(10L)).thenReturn(Optional.of(producto));
         when(costoProductoStrategy.calcularUnidadesRequeridas(150.0, 100.0)).thenReturn(2);
         when(inventarioRepository.findDisponiblesPorProductoForUpdate(10L, LocalDate.now()))
                 .thenReturn(List.of(inventario));
+        when(consumoRepository.saveAllAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         EjecucionJornadaSalida salida = service.ejecutar(20L, ejecucion(List.of(1L), 10L, 0.5));
 
         assertEquals("EJECUTADA", salida.estado());
         assertEquals(1, salida.animalesTratados());
         assertEquals(150.0, salida.aplicaciones().get(0).dosisAplicada());
+        assertEquals(LocalDate.now().plusDays(21), salida.aplicaciones().get(0).fechaFinRetiroCarne());
+        assertEquals(LocalDate.now().plusDays(3), salida.aplicaciones().get(0).fechaFinRetiroLeche());
         assertEquals(8, inventario.getCantidadDisponible());
         verify(inventarioRepository).saveAllAndFlush(List.of(inventario));
+        verify(consumoRepository).saveAllAndFlush(any());
         verify(aplicacionRepository).saveAllAndFlush(any());
         verify(jornadaRepository).save(jornada);
     }
@@ -172,6 +183,67 @@ class JornadaSanitariaServiceTest {
         assertThrows(ReglaNegocioException.class,
                 () -> service.ejecutar(20L, ejecucion(List.of(1L), 10L, 0.5)));
         verify(animalRepository, never()).findByLoteId(1L);
+    }
+
+    @Test
+    void ejecutar_rechazaDosisFueraDelRangoDelProducto() {
+        when(jornadaRepository.findByIdForUpdate(20L))
+                .thenReturn(Optional.of(jornada("PLANIFICADA", LocalDate.now())));
+        when(animalRepository.findByLoteId(1L)).thenReturn(List.of(animal(1L, 300.0, "Activo")));
+        when(productoRepository.findById(10L)).thenReturn(Optional.of(producto()));
+
+        assertThrows(ReglaNegocioException.class,
+                () -> service.ejecutar(20L, ejecucion(List.of(1L), 10L, 1.1)));
+        verify(inventarioRepository, never()).findDisponiblesPorProductoForUpdate(10L, LocalDate.now());
+    }
+
+    @Test
+    void planificar_rechazaAplicacionDentroDelIntervaloMinimo() {
+        stubBasePlanificacion();
+        when(animalRepository.findByLoteId(1L)).thenReturn(List.of(animal(1L, 300.0, "Activo")));
+        when(aplicacionRepository.existsByAnimalIdAndProductoIdAndFechaAplicacionGreaterThan(
+                1L, 10L, LocalDate.now().minusDays(7))).thenReturn(true);
+
+        assertThrows(ReglaNegocioException.class, () -> service.planificar(planificarEntrada()));
+        verify(jornadaRepository, never()).save(any());
+    }
+
+    @Test
+    void ejecutar_registraConsumoDeCadaProductoDelPlan() {
+        JornadaSanitariaEntity jornada = jornada("PLANIFICADA", LocalDate.now());
+        ProductoVeterinarioEntity segundoProducto = new ProductoVeterinarioEntity(
+                "Antiparasitario", "Medicamento", "ml", 0.1, 1.0,
+                new BigDecimal("30.00"), 50.0);
+        segundoProducto.setId(11L);
+        jornada.getPlan().getProductos().add(segundoProducto);
+        when(jornadaRepository.findByIdForUpdate(20L)).thenReturn(Optional.of(jornada));
+        when(animalRepository.findByLoteId(1L)).thenReturn(List.of(animal(1L, 300.0, "Activo")));
+        when(productoRepository.findById(10L)).thenReturn(Optional.of(producto()));
+        when(productoRepository.findById(11L)).thenReturn(Optional.of(segundoProducto));
+        when(costoProductoStrategy.calcularUnidadesRequeridas(150.0, 100.0)).thenReturn(2);
+        when(costoProductoStrategy.calcularUnidadesRequeridas(150.0, 50.0)).thenReturn(3);
+        InventarioEntity inventarioPrimero = inventario(4, 20.0);
+        InventarioEntity inventarioSegundo = new InventarioEntity(
+                segundoProducto, "LOTE-B", LocalDate.now().plusDays(30), 4, new BigDecimal("30.00"));
+        when(inventarioRepository.findDisponiblesPorProductoForUpdate(10L, LocalDate.now()))
+                .thenReturn(List.of(inventarioPrimero));
+        when(inventarioRepository.findDisponiblesPorProductoForUpdate(11L, LocalDate.now()))
+                .thenReturn(List.of(inventarioSegundo));
+        when(consumoRepository.saveAllAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        EjecucionJornadaSalida salida = service.ejecutar(
+                20L, new EjecutarJornadaEntrada(List.of(1L), List.of(
+                        new RegistroProductoJornada(10L, 0.5, null),
+                        new RegistroProductoJornada(11L, 0.5, null))));
+
+        assertEquals(2, salida.aplicaciones().size());
+        assertEquals(2, inventarioPrimero.getCantidadDisponible());
+        assertEquals(1, inventarioSegundo.getCantidadDisponible());
+        verify(consumoRepository).saveAllAndFlush(argThat(registros -> {
+            List<Long> productoIds = new java.util.ArrayList<>();
+            registros.forEach(consumo -> productoIds.add(consumo.getInventario().getProducto().getId()));
+            return productoIds.stream().sorted().toList().equals(List.of(10L, 11L));
+        }));
     }
 
     @Test

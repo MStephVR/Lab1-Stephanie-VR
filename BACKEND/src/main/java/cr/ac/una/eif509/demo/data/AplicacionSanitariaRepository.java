@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface AplicacionSanitariaRepository extends BaseRepository<AplicacionSanitariaEntity, Long> {
     List<AplicacionSanitariaEntity> findByAnimalIdOrderByFechaAplicacionDesc(Long animalId);
+    boolean existsByAnimalIdAndProductoIdAndFechaAplicacionGreaterThan(
+            Long animalId, Long productoId, java.time.LocalDate fechaAplicacion);
 
     @Query("select a from AplicacionSanitariaEntity a join fetch a.animal join fetch a.producto left join fetch a.jornada where a.jornada.id = :jornadaId order by a.fechaAplicacion desc")
     List<AplicacionSanitariaEntity> findByJornadaWithDetails(@Param("jornadaId") Long jornadaId);

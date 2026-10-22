@@ -76,7 +76,9 @@ Content-Type: application/json
   "dosisMinima": 0.5,
   "dosisMaxima": 1.0,
   "precioUnitario": 2500,
-  "contenidoMlPorUnidad": 100
+  "contenidoMlPorUnidad": 100,
+  "retiroCarneDias": 21,
+  "retiroLecheDias": 5
 }
 
 ### Filtrar productos por rango de precio
@@ -109,6 +111,7 @@ Content-Type: application/json
   "nombre": "Plan preventivo",
   "descripcion": "Vacunación anual",
   "edadObjetivoMeses": 12,
+  "intervaloMinimoDias": 365,
   "productosIds": [1]
 }
 
@@ -256,7 +259,9 @@ Content-Type: application/json
   "dosisMinima": 0.5,
   "dosisMaxima": 1.0,
   "precioUnitario": 2500,
-  "contenidoMlPorUnidad": 100
+  "contenidoMlPorUnidad": 100,
+  "retiroCarneDias": 21,
+  "retiroLecheDias": 5
 }
 
 DELETE {{baseUrl}}/api/v1/productos/{{productoId}}
@@ -293,6 +298,7 @@ Content-Type: application/json
   "nombre": "Plan preventivo actualizado",
   "descripcion": "Vacunación anual",
   "edadObjetivoMeses": 12,
+  "intervaloMinimoDias": 365,
   "productosIds": [{{productoId}}]
 }
 

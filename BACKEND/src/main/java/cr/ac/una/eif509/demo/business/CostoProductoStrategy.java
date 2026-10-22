@@ -6,4 +6,11 @@ public interface CostoProductoStrategy {
     int calcularUnidadesRequeridas(double dosisTotalMl, double contenidoMlPorUnidad);
 
     BigDecimal calcularCostoProducto(BigDecimal precioUnitario, int unidadesRequeridas);
+
+    default BigDecimal calcularCostoProducto(
+            BigDecimal precioUnitario, double dosisTotalMl, double contenidoMlPorUnidad
+    ) {
+        return calcularCostoProducto(
+                precioUnitario, calcularUnidadesRequeridas(dosisTotalMl, contenidoMlPorUnidad));
+    }
 }

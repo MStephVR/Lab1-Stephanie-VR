@@ -23,11 +23,31 @@ public class AplicacionSanitariaEntity {
     private Double dosisAplicada;
     @Column(name = "proxima_fecha_aplicacion")
     private LocalDate proximaFechaAplicacion;
+    @Column(name = "fecha_fin_retiro_carne")
+    private LocalDate fechaFinRetiroCarne;
+    @Column(name = "fecha_fin_retiro_leche")
+    private LocalDate fechaFinRetiroLeche;
     private String observacion;
 
     protected AplicacionSanitariaEntity() { }
     public AplicacionSanitariaEntity(AnimalEntity animal, ProductoVeterinarioEntity producto, JornadaSanitariaEntity jornada, LocalDate fechaAplicacion, Double dosisAplicada, LocalDate proximaFechaAplicacion, String observacion) {
-        this.animal = animal; this.producto = producto; this.jornada = jornada; this.fechaAplicacion = fechaAplicacion; this.dosisAplicada = dosisAplicada; this.proximaFechaAplicacion = proximaFechaAplicacion; this.observacion = observacion;
+        this(animal, producto, jornada, fechaAplicacion, dosisAplicada, proximaFechaAplicacion,
+                observacion, null, null);
+    }
+    public AplicacionSanitariaEntity(AnimalEntity animal, ProductoVeterinarioEntity producto,
+                                    JornadaSanitariaEntity jornada, LocalDate fechaAplicacion,
+                                    Double dosisAplicada, LocalDate proximaFechaAplicacion,
+                                    String observacion, LocalDate fechaFinRetiroCarne,
+                                    LocalDate fechaFinRetiroLeche) {
+        this.animal = animal;
+        this.producto = producto;
+        this.jornada = jornada;
+        this.fechaAplicacion = fechaAplicacion;
+        this.dosisAplicada = dosisAplicada;
+        this.proximaFechaAplicacion = proximaFechaAplicacion;
+        this.observacion = observacion;
+        this.fechaFinRetiroCarne = fechaFinRetiroCarne;
+        this.fechaFinRetiroLeche = fechaFinRetiroLeche;
     }
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -43,6 +63,10 @@ public class AplicacionSanitariaEntity {
     public void setDosisAplicada(Double value) { this.dosisAplicada = value; }
     public LocalDate getProximaFechaAplicacion() { return proximaFechaAplicacion; }
     public void setProximaFechaAplicacion(LocalDate value) { this.proximaFechaAplicacion = value; }
+    public LocalDate getFechaFinRetiroCarne() { return fechaFinRetiroCarne; }
+    public void setFechaFinRetiroCarne(LocalDate value) { this.fechaFinRetiroCarne = value; }
+    public LocalDate getFechaFinRetiroLeche() { return fechaFinRetiroLeche; }
+    public void setFechaFinRetiroLeche(LocalDate value) { this.fechaFinRetiroLeche = value; }
     public String getObservacion() { return observacion; }
     public void setObservacion(String value) { this.observacion = value; }
 }

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
@@ -38,6 +39,10 @@ public class ProductoForm {
     @NotNull(message = "Este campo es obligatorio.")
     @Positive(message = "El contenido debe ser mayor que cero.")
     private Double contenidoMlPorUnidad;
+    @PositiveOrZero(message = "El retiro de carne no puede ser negativo.")
+    private Integer retiroCarneDias = 0;
+    @PositiveOrZero(message = "El retiro de leche no puede ser negativo.")
+    private Integer retiroLecheDias = 0;
 
     public static ProductoForm desde(ProductoSalida producto) {
         ProductoForm form = new ProductoForm();
@@ -48,12 +53,14 @@ public class ProductoForm {
         form.setDosisMaxima(producto.dosisMaxima());
         form.setPrecioUnitario(producto.precioUnitario());
         form.setContenidoMlPorUnidad(producto.contenidoMlPorUnidad());
+        form.setRetiroCarneDias(producto.retiroCarneDias());
+        form.setRetiroLecheDias(producto.retiroLecheDias());
         return form;
     }
 
     public ProductoEntrada aEntrada() {
         return new ProductoEntrada(nombre, tipo, unidadMedida, dosisMinima, dosisMaxima,
-                precioUnitario, contenidoMlPorUnidad);
+                precioUnitario, contenidoMlPorUnidad, retiroCarneDias, retiroLecheDias);
     }
 
     public String getNombre() { return nombre; }
@@ -72,4 +79,8 @@ public class ProductoForm {
     public void setContenidoMlPorUnidad(Double contenidoMlPorUnidad) {
         this.contenidoMlPorUnidad = contenidoMlPorUnidad;
     }
+    public Integer getRetiroCarneDias() { return retiroCarneDias; }
+    public void setRetiroCarneDias(Integer retiroCarneDias) { this.retiroCarneDias = retiroCarneDias; }
+    public Integer getRetiroLecheDias() { return retiroLecheDias; }
+    public void setRetiroLecheDias(Integer retiroLecheDias) { this.retiroLecheDias = retiroLecheDias; }
 }

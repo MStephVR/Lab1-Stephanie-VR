@@ -37,6 +37,7 @@ public class JornadaSanitariaFactory {
             JornadaSanitariaEntity jornada,
             LocalDate fecha,
             double dosisMl,
+            int intervaloMinimoDias,
             String observacion
     ) {
         return new AplicacionSanitariaEntity(
@@ -45,8 +46,14 @@ public class JornadaSanitariaFactory {
                 jornada,
                 fecha,
                 dosisMl,
-                fecha.plusDays(7),
-                observacion
+                fecha.plusDays(intervaloMinimoDias),
+                observacion,
+                fechaRetiro(fecha, producto.getRetiroCarneDias()),
+                fechaRetiro(fecha, producto.getRetiroLecheDias())
         );
+    }
+
+    private LocalDate fechaRetiro(LocalDate fecha, Integer dias) {
+        return dias == null || dias <= 0 ? null : fecha.plusDays(dias);
     }
 }

@@ -149,6 +149,25 @@ Los animales aceptan `estado` y
 Spring Data Specifications. Los errores de validación y de negocio se devuelven
 como `application/problem+json` (RFC 9457).
 
+Al planificar un tratamiento, el plan sanitario define `intervaloMinimoDias`
+(7 por defecto). La ejecución verifica el historial por animal y producto, y
+comprueba que `dosisMlPorKg` esté dentro de `dosisMinima`/`dosisMaxima` del
+producto cuando esos límites están configurados. El producto también define
+`retiroCarneDias` y `retiroLecheDias` (0 por defecto); al aplicar, se guardan
+las fechas de fin de retiro en la aplicación para que cambios posteriores del
+catálogo no alteren la advertencia histórica.
+
+La ejecución consume primero los lotes vigentes con vencimiento más próximo y
+guarda el detalle de lote, unidades y costo unitario usado. El endpoint de
+costeo solo valora ese consumo registrado: no vuelve a modificar existencias,
+incluye todos los productos de la jornada y conserva el costo del lote usado.
+Los presupuestos estimados usan Strategy por mililitro; las jornadas reales
+usan Strategy por unidad del lote consumido. La `JornadaSanitariaFactory`
+construye las jornadas y aplicaciones utilizadas por el servicio.
+Las jornadas ejecutadas antes de la migración V8 no contienen este detalle y
+no se costean automáticamente: se requiere reconciliar el consumo real para no
+atribuirles un lote o costo incorrecto.
+
 ## Entidades de negocio
 
 El esqueleto incluye entidades base para:

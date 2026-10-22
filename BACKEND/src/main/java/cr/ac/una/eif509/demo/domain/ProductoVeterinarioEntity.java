@@ -26,6 +26,10 @@ public class ProductoVeterinarioEntity {
     private BigDecimal precioUnitario;
     @Column(name = "contenido_ml_por_unidad", nullable = false)
     private Double contenidoMlPorUnidad;
+    @Column(name = "retiro_carne_dias", nullable = false)
+    private Integer retiroCarneDias = 0;
+    @Column(name = "retiro_leche_dias", nullable = false)
+    private Integer retiroLecheDias = 0;
     @OneToMany(mappedBy = "producto", fetch = FetchType.LAZY)
     private List<InventarioEntity> inventarios = new ArrayList<>();
     @OneToMany(mappedBy = "producto", fetch = FetchType.LAZY)
@@ -59,6 +63,10 @@ public class ProductoVeterinarioEntity {
     public void setPrecioUnitario(BigDecimal value) { this.precioUnitario = value; }
     public Double getContenidoMlPorUnidad() { return contenidoMlPorUnidad; }
     public void setContenidoMlPorUnidad(Double value) { this.contenidoMlPorUnidad = value; }
+    public Integer getRetiroCarneDias() { return retiroCarneDias; }
+    public void setRetiroCarneDias(Integer value) { this.retiroCarneDias = value; }
+    public Integer getRetiroLecheDias() { return retiroLecheDias; }
+    public void setRetiroLecheDias(Integer value) { this.retiroLecheDias = value; }
     public List<InventarioEntity> getInventarios() { return inventarios; }
     public List<AplicacionSanitariaEntity> getAplicaciones() { return aplicaciones; }
     public Set<PlanSanitarioEntity> getPlanes() { return planes; }

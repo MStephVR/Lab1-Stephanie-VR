@@ -50,6 +50,14 @@
         <input type="number" th:field="*{contenidoMlPorUnidad}" th:errorclass="campo-error" min="0.001" step="0.001" required>
         <span class="error" th:if="${#fields.hasErrors('contenidoMlPorUnidad')}" th:errors="*{contenidoMlPorUnidad}">Error</span>
       </label>
+      <label>Retiro de carne (días)
+        <input type="number" th:field="*{retiroCarneDias}" th:errorclass="campo-error" min="0" step="1">
+        <span class="error" th:if="${#fields.hasErrors('retiroCarneDias')}" th:errors="*{retiroCarneDias}">Error</span>
+      </label>
+      <label>Retiro de leche (días)
+        <input type="number" th:field="*{retiroLecheDias}" th:errorclass="campo-error" min="0" step="1">
+        <span class="error" th:if="${#fields.hasErrors('retiroLecheDias')}" th:errors="*{retiroLecheDias}">Error</span>
+      </label>
     </div>
     <div class="acciones-form">
       <button class="boton" type="submit">Guardar producto</button>

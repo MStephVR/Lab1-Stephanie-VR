@@ -151,6 +151,8 @@ public class CatalogoService {
         ProductoVeterinarioEntity producto = new ProductoVeterinarioEntity(
                 entrada.nombre(), entrada.tipo(), entrada.unidadMedida(), entrada.dosisMinima(),
                 entrada.dosisMaxima(), entrada.precioUnitario(), entrada.contenidoMlPorUnidad());
+        producto.setRetiroCarneDias(entrada.retiroCarneDias() == null ? 0 : entrada.retiroCarneDias());
+        producto.setRetiroLecheDias(entrada.retiroLecheDias() == null ? 0 : entrada.retiroLecheDias());
         return productoSalida(productoRepository.save(producto));
     }
 
@@ -165,6 +167,8 @@ public class CatalogoService {
         producto.setDosisMaxima(entrada.dosisMaxima());
         producto.setPrecioUnitario(entrada.precioUnitario());
         producto.setContenidoMlPorUnidad(entrada.contenidoMlPorUnidad());
+        producto.setRetiroCarneDias(entrada.retiroCarneDias() == null ? 0 : entrada.retiroCarneDias());
+        producto.setRetiroLecheDias(entrada.retiroLecheDias() == null ? 0 : entrada.retiroLecheDias());
         return productoSalida(productoRepository.save(producto));
     }
 
@@ -232,7 +236,8 @@ public class CatalogoService {
     @Transactional
     public PlanSanitarioSalida crearPlan(PlanSanitarioEntrada entrada) {
         PlanSanitarioEntity plan = new PlanSanitarioEntity(
-                entrada.nombre(), entrada.descripcion(), entrada.edadObjetivoMeses());
+                entrada.nombre(), entrada.descripcion(), entrada.edadObjetivoMeses(),
+                entrada.intervaloMinimoDias() == null ? 7 : entrada.intervaloMinimoDias());
         plan.getProductos().addAll(obtenerProductos(entrada.productosIds()));
         return planSalida(planRepository.save(plan));
     }
@@ -244,6 +249,7 @@ public class CatalogoService {
         plan.setNombre(entrada.nombre());
         plan.setDescripcion(entrada.descripcion());
         plan.setEdadObjetivoMeses(entrada.edadObjetivoMeses());
+        plan.setIntervaloMinimoDias(entrada.intervaloMinimoDias() == null ? 7 : entrada.intervaloMinimoDias());
         plan.getProductos().clear();
         plan.getProductos().addAll(obtenerProductos(entrada.productosIds()));
         return planSalida(planRepository.save(plan));
@@ -363,7 +369,8 @@ public class CatalogoService {
     private ProductoSalida productoSalida(ProductoVeterinarioEntity producto) {
         return new ProductoSalida(producto.getId(), producto.getNombre(), producto.getTipo(),
                 producto.getUnidadMedida(), producto.getDosisMinima(), producto.getDosisMaxima(),
-                producto.getPrecioUnitario(), producto.getContenidoMlPorUnidad());
+                producto.getPrecioUnitario(), producto.getContenidoMlPorUnidad(),
+                producto.getRetiroCarneDias(), producto.getRetiroLecheDias());
     }
 
     private InventarioSalida inventarioSalida(InventarioEntity inventario) {
@@ -374,7 +381,7 @@ public class CatalogoService {
 
     private PlanSanitarioSalida planSalida(PlanSanitarioEntity plan) {
         return new PlanSanitarioSalida(plan.getId(), plan.getNombre(), plan.getDescripcion(),
-                plan.getEdadObjetivoMeses(),
+                plan.getEdadObjetivoMeses(), plan.getIntervaloMinimoDias(),
                 plan.getProductos().stream().map(ProductoVeterinarioEntity::getId).sorted().toList());
     }
 

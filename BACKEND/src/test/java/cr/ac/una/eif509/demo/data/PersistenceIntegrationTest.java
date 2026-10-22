@@ -5,6 +5,7 @@ import cr.ac.una.eif509.demo.domain.AplicacionSanitariaEntity;
 import cr.ac.una.eif509.demo.domain.CompraEntity;
 import cr.ac.una.eif509.demo.domain.InventarioEntity;
 import cr.ac.una.eif509.demo.domain.JornadaSanitariaEntity;
+import cr.ac.una.eif509.demo.domain.JornadaConsumoInventarioEntity;
 import cr.ac.una.eif509.demo.domain.LoteEntity;
 import cr.ac.una.eif509.demo.domain.ProductoVeterinarioEntity;
 import cr.ac.una.eif509.demo.domain.PlanSanitarioEntity;
@@ -37,7 +38,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -93,6 +93,8 @@ class PersistenceIntegrationTest {
     @Autowired
     private JornadaSanitariaRepository jornadaRepository;
     @Autowired
+    private JornadaConsumoInventarioRepository consumoRepository;
+    @Autowired
     private PlanSanitarioRepository planRepository;
     @Autowired
     private AplicacionSanitariaRepository aplicacionRepository;
@@ -112,6 +114,7 @@ class PersistenceIntegrationTest {
     @BeforeEach
     void cleanDatabase() {
         aplicacionRepository.deleteAll();
+        consumoRepository.deleteAll();
         jornadaRepository.deleteAll();
         planRepository.deleteAll();
         compraRepository.deleteAll();
@@ -201,7 +204,7 @@ class PersistenceIntegrationTest {
     }
 
     @Test
-    void revierteCostoYEstadoSiFallaElDecrementoDeInventario() {
+    void revierteCostoYEstadoSiFallaElRegistroDelCosto() {
         LoteEntity lote = loteRepository.save(new LoteEntity("Lote rollback", "Finca", "Sanidad"));
         AnimalEntity animal = animalRepository.save(new AnimalEntity(
                 "ROLLBACK-01", "Brahman", "Hembra", 300.0,
@@ -209,25 +212,27 @@ class PersistenceIntegrationTest {
         ProductoVeterinarioEntity producto = productoRepository.save(new ProductoVeterinarioEntity(
                 "Producto rollback", "Vacuna", "ml", 0.1, 1.0, new BigDecimal("20.00"), 100.0));
         InventarioEntity inventario = inventarioRepository.save(new InventarioEntity(
-                producto, "LOTE-ROLLBACK", LocalDate.now().plusDays(30), 10, new BigDecimal("20.00")));
+                producto, "LOTE-ROLLBACK", LocalDate.now().plusDays(30), 8, new BigDecimal("20.00")));
         JornadaSanitariaEntity jornada = new JornadaSanitariaEntity(
                 LocalDate.now(), "Jornada rollback", 1, BigDecimal.ZERO, null);
         jornada.setEstado("EJECUTADA");
         jornada = jornadaRepository.save(jornada);
         aplicacionRepository.save(new AplicacionSanitariaEntity(
                 animal, producto, jornada, LocalDate.now(), 150.0, LocalDate.now().plusDays(7), null));
+        consumoRepository.save(new JornadaConsumoInventarioEntity(
+                jornada, inventario, 2, new BigDecimal("20.00")));
 
         jdbcTemplate.execute("""
-                CREATE OR REPLACE FUNCTION fail_inventory_update() RETURNS trigger AS $$
+                CREATE OR REPLACE FUNCTION fail_journey_cost_update() RETURNS trigger AS $$
                 BEGIN
                     RAISE EXCEPTION 'fallo intermedio de prueba';
                 END;
                 $$ LANGUAGE plpgsql
                 """);
         jdbcTemplate.execute("""
-                CREATE TRIGGER fail_inventory_update
-                BEFORE UPDATE ON inventario
-                FOR EACH ROW EXECUTE FUNCTION fail_inventory_update()
+                CREATE TRIGGER fail_journey_cost_update
+                BEFORE UPDATE ON jornadas_sanitarias
+                FOR EACH ROW EXECUTE FUNCTION fail_journey_cost_update()
                 """);
         try {
             Long jornadaId = jornada.getId();
@@ -242,10 +247,10 @@ class PersistenceIntegrationTest {
             InventarioEntity inventarioPersistido = inventarioRepository.findById(inventario.getId()).orElseThrow();
             assertThat(jornadaPersistida.getCostoTotal()).isEqualByComparingTo(BigDecimal.ZERO);
             assertThat(jornadaPersistida.getEstado()).isEqualTo("EJECUTADA");
-            assertThat(inventarioPersistido.getCantidadDisponible()).isEqualTo(10);
+            assertThat(inventarioPersistido.getCantidadDisponible()).isEqualTo(8);
         } finally {
-            jdbcTemplate.execute("DROP TRIGGER IF EXISTS fail_inventory_update ON inventario");
-            jdbcTemplate.execute("DROP FUNCTION IF EXISTS fail_inventory_update()");
+            jdbcTemplate.execute("DROP TRIGGER IF EXISTS fail_journey_cost_update ON jornadas_sanitarias");
+            jdbcTemplate.execute("DROP FUNCTION IF EXISTS fail_journey_cost_update()");
         }
     }
 
@@ -300,6 +305,51 @@ class PersistenceIntegrationTest {
             jdbcTemplate.execute("DROP TRIGGER IF EXISTS fail_application_insert ON aplicaciones_sanitarias");
             jdbcTemplate.execute("DROP FUNCTION IF EXISTS fail_application_insert()");
         }
+
+    }
+
+    @Test
+    void costeaVariosProductosConLosLotesConsumidosSinUnSegundoDescuento() {
+        LoteEntity lote = loteRepository.save(new LoteEntity("Lote costo sin doble descuento", "Finca", "Sanidad"));
+        AnimalEntity animal = animalRepository.save(new AnimalEntity(
+                "COSTO-REAL-01", "Brahman", "Hembra", 300.0,
+                LocalDate.of(2023, 1, 1), "Activo", lote));
+        ProductoVeterinarioEntity productoA = productoRepository.save(new ProductoVeterinarioEntity(
+                "Vacuna costo real", "Vacuna", "ml", 0.1, 1.0,
+                new BigDecimal("20.00"), 100.0));
+        ProductoVeterinarioEntity productoB = productoRepository.save(new ProductoVeterinarioEntity(
+                "Antiparasitario costo real", "Medicamento", "ml", 0.1, 1.0,
+                new BigDecimal("30.00"), 50.0));
+        PlanSanitarioEntity plan = new PlanSanitarioEntity("Plan costo real", "Dos productos", 6);
+        plan.getProductos().addAll(List.of(productoA, productoB));
+        plan = planRepository.save(plan);
+        InventarioEntity inventarioA = inventarioRepository.save(new InventarioEntity(
+                productoA, "LOTE-COSTO-A", LocalDate.now().plusDays(30), 5, new BigDecimal("20.00")));
+        InventarioEntity inventarioB = inventarioRepository.save(new InventarioEntity(
+                productoB, "LOTE-COSTO-B", LocalDate.now().plusDays(45), 6, new BigDecimal("30.00")));
+        JornadaSanitariaEntity jornada = jornadaRepository.save(new JornadaSanitariaEntity(
+                LocalDate.now(), "Jornada con dos productos", 1, BigDecimal.ZERO, null, lote, plan));
+
+        jornadaSanitariaService.ejecutar(jornada.getId(), new EjecutarJornadaEntrada(
+                List.of(animal.getId()),
+                List.of(new RegistroProductoJornada(productoA.getId(), 0.5, null),
+                        new RegistroProductoJornada(productoB.getId(), 0.25, null))));
+
+        assertThat(inventarioRepository.findById(inventarioA.getId()).orElseThrow().getCantidadDisponible())
+                .isEqualTo(3);
+        assertThat(inventarioRepository.findById(inventarioB.getId()).orElseThrow().getCantidadDisponible())
+                .isEqualTo(4);
+
+        var costo = costoJornadaService.procesarCostoJornada(new ProcesarCostoJornadaEntrada(
+                jornada.getId(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
+
+        assertThat(costo.unidadesConsumidas()).isEqualTo(4);
+        assertThat(costo.costoProducto()).isEqualByComparingTo("100.00");
+        assertThat(costo.costoTotal()).isEqualByComparingTo("100.00");
+        assertThat(inventarioRepository.findById(inventarioA.getId()).orElseThrow().getCantidadDisponible())
+                .isEqualTo(3);
+        assertThat(inventarioRepository.findById(inventarioB.getId()).orElseThrow().getCantidadDisponible())
+                .isEqualTo(4);
     }
 
     @Test
@@ -337,19 +387,36 @@ class PersistenceIntegrationTest {
                     .andExpect(jsonPath("$.page.size").value(5))
                     .andExpect(jsonPath("$.content[0].codigoArete").value("API-ANIMAL-01"));
 
-            mockMvc.perform(post("/api/v1/productos")
+            MvcResult productoResponse = mockMvc.perform(post("/api/v1/productos")
                             .header("Authorization", "Bearer " + token)
                             .contentType("application/json")
                             .content("""
                                     {"nombre":"API Producto","tipo":"Vacuna","unidadMedida":"ml",
                                      "dosisMinima":0.1,"dosisMaxima":1.0,
-                                     "precioUnitario":2500.00,"contenidoMlPorUnidad":100.0}
+                                     "precioUnitario":2500.00,"contenidoMlPorUnidad":100.0,
+                                     "retiroCarneDias":15,"retiroLecheDias":2}
                                     """))
-                    .andExpect(status().isCreated());
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.retiroCarneDias").value(15))
+                    .andExpect(jsonPath("$.retiroLecheDias").value(2))
+                    .andReturn();
+            Long productoId = objectMapper.readTree(productoResponse.getResponse().getContentAsByteArray())
+                    .get("id").asLong();
             mockMvc.perform(get("/api/v1/productos?precioMinimo=2000&precioMaximo=3000&page=0&size=5")
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.page.totalElements").value(1));
+            mockMvc.perform(post("/api/v1/planes-sanitarios")
+                            .header("Authorization", "Bearer " + token)
+                            .contentType("application/json")
+                            .content(objectMapper.writeValueAsBytes(java.util.Map.of(
+                                    "nombre", "API Plan sanitario",
+                                    "descripcion", "Intervalo por API",
+                                    "edadObjetivoMeses", 12,
+                                    "intervaloMinimoDias", 14,
+                                    "productosIds", List.of(productoId)))))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.intervaloMinimoDias").value(14));
 
             mockMvc.perform(post("/api/v1/lotes")
                             .header("Authorization", "Bearer " + token)

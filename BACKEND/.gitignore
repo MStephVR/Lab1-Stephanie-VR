@@ -25,6 +25,7 @@ Thumbs.db
 
 # ===== Logs y temporales =====
 *.log
+gradle-*-output.txt
 /.gradle/
 /build/
 /bin/

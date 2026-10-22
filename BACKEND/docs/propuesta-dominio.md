@@ -63,15 +63,17 @@ Este proceso administra el ciclo completo de una vacuna o desparasitación:
 
 - No se puede aplicar un producto vencido.
 - Debe existir inventario suficiente.
-- No debe repetirse una vacuna antes del intervalo mínimo permitido.
-- La dosis debe estar dentro del rango permitido para el peso del animal.
+- No debe repetirse una vacuna antes del intervalo mínimo permitido, definido
+  en el plan y validado al planificar y ejecutar.
+- La dosis en ml/kg debe estar dentro del rango mínimo/máximo definido para el
+  producto.
 - El animal debe estar activo y pertenecer a un lote registrado.
 - La fecha de aplicación no puede ser posterior a la fecha actual.
 - El usuario debe registrar quién realizó la aplicación.
 - Si el producto exige refuerzo, se debe generar automáticamente la próxima
   aplicación.
 - El sistema debe advertir cuando existe un período de retiro para carne o
-  leche.
+  leche e informar la fecha hasta la que aplica.
 
 ## Proceso 2: Cálculo del costo de una jornada sanitaria
 
@@ -92,7 +94,8 @@ animales:
 - Los costos no pueden ser negativos.
 - La cantidad utilizada no puede superar el inventario disponible.
 - El costo del producto debe tomarse del lote de inventario realmente
-  consumido.
+  consumido. La ejecución guarda unidades y costo unitario por lote, para que
+  el costeo no consulte ni vuelva a descontar existencias actuales.
 - Si se utilizan varios productos, todos deben incluirse en el cálculo.
 - No se puede cerrar una jornada mientras tenga aplicaciones incompletas.
 - Los costos adicionales deben indicar concepto y monto.
@@ -102,7 +105,9 @@ animales:
 
 1. Se registra una compra de productos.
 2. Se almacena número de lote, fecha de vencimiento, cantidad y costo.
-3. Cada aplicación descuenta la dosis utilizada.
+3. Cada aplicación descuenta la dosis utilizada. La jornada conserva el detalle
+   de los lotes y unidades consumidos; el costeo posterior no vuelve a
+   descontar inventario.
 4. El sistema genera alertas por bajo inventario o vencimiento próximo.
 5. Para utilizar productos, se priorizan los lotes con vencimiento más cercano.
 

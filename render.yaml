@@ -1,0 +1,59 @@
+services:
+  - type: web
+    name: sisganado-api
+    runtime: docker
+    plan: starter
+    rootDir: BACKEND
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: PGHOST
+        fromDatabase:
+          name: sisganado-postgres
+          property: host
+      - key: PGPORT
+        fromDatabase:
+          name: sisganado-postgres
+          property: port
+      - key: PGDATABASE
+        fromDatabase:
+          name: sisganado-postgres
+          property: database
+      - key: PGUSER
+        fromDatabase:
+          name: sisganado-postgres
+          property: user
+      - key: PGPASSWORD
+        fromDatabase:
+          name: sisganado-postgres
+          property: password
+      - key: SPRING_DATA_MONGODB_URI
+        sync: false
+      - key: SISGANADO_JWT_SECRET
+        generateValue: true
+      - key: SISGANADO_ADMIN_PASSWORD
+        sync: false
+      - key: SISGANADO_VETERINARIAN_PASSWORD
+        sync: false
+      - key: SISGANADO_CORS_ALLOWED_ORIGINS
+        sync: false
+
+  - type: web
+    name: sisganado-spa
+    runtime: static
+    plan: free
+    rootDir: BACKEND/spa
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false
+
+databases:
+  - name: sisganado-postgres
+    plan: basic-256mb
+    databaseName: ganado_db
+    user: ganado_user

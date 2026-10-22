@@ -78,7 +78,7 @@ curl http://localhost:8080/actuator/health
 # Obtener un JWT local (cambie estas credenciales fuera de desarrollo)
 curl -X POST http://localhost:8080/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"AdminLocal2026!"}'
+  -d '{"username":"admin","password":"<SISGANADO_ADMIN_PASSWORD>"}'
 
 # Sustituya <JWT> por accessToken del resultado del login
 curl http://localhost:8080/api/v1/ganado/control?animales=10 \
@@ -115,6 +115,15 @@ el JWT recibido como `Authorization: Bearer <token>`. En perfiles `local`,
 (`SISGANADO_VETERINARIAN_PASSWORD`). Los valores por defecto son únicamente
 para desarrollo; cámbielos en cualquier entorno compartido.
 
+Los nombres de variables utilizados por despliegue son
+`SPRING_PROFILES_ACTIVE`, `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`,
+`PGPASSWORD`, `SPRING_DATA_MONGODB_URI`, `SPRING_DATA_MONGODB_DATABASE`,
+`SISGANADO_JWT_SECRET`, `SISGANADO_ADMIN_PASSWORD`,
+`SISGANADO_VETERINARIAN_PASSWORD`, `SISGANADO_CORS_ALLOWED_ORIGINS` y
+`VITE_API_BASE_URL`. Los nombres de variables para ajustes locales adicionales
+se detallan en [docs/despliegue.md](docs/despliegue.md). No se publican sus
+valores aquí.
+
 La administración del catálogo también cuenta con interfaz HTML en
 `/admin/productos`, disponible para `ADMIN` después de iniciar sesión en
 `/login`. Esta interfaz usa sesión de servidor y protección CSRF para sus
@@ -128,8 +137,8 @@ jornada planificada queda asociada al usuario autenticado; leerla, ejecutarla
 o costearla requiere ser su propietario. Un recurso ajeno se responde como
 404 para evitar revelar su existencia.
 
-En perfiles `local` y `docker`, la bitácora documental está disponible para
-ADMIN. El POST recibe un JSON validado y responde `201 Created` con `Location`;
+En perfiles `local`, `docker` y `prod`, la bitácora documental está disponible
+para ADMIN. El POST recibe un JSON validado y responde `201 Created` con `Location`;
 la colección devuelve DTOs y el recurso individual puede consultarse por ID.
 Los errores HTTP usan `application/problem+json`; los errores inesperados
 responden 500 con un detalle genérico y las validaciones incluyen `errors` por
@@ -152,8 +161,8 @@ campo.
 Las colecciones de animales, lotes, productos, inventarios, planes, compras,
 proveedores y jornadas propias aceptan `page`, `size` y `sort=propiedad,direccion`;
 las respuestas usan la forma estable `content` + `page` de `PagedModel`.
-Los animales aceptan `estado` y
-`raza`; los productos `precioMinimo` y `precioMaximo`, implementados con
+Los animales aceptan `estado`, `raza` y `loteId`; los productos `precioMinimo`
+y `precioMaximo`, implementados con
 Spring Data Specifications. Los errores de validación y de negocio se devuelven
 como `application/problem+json` (RFC 9457).
 
@@ -199,5 +208,44 @@ El esqueleto incluye entidades base para:
 
 ## Resultado esperado
 
-La base deja listo el sistema para luego conectar base de datos, formularios,
-validaciones avanzadas, alertas y reportes por animal, lote o período.
+## Laboratorio 5: interfaces y despliegue
+
+El módulo administrativo Thymeleaf cubre la gestión de productos veterinarios
+en `/admin/productos` y de proveedores en `/admin/proveedores`. Ambos flujos
+incluyen listado paginado, alta/edición con validación de Bean Validation y
+Post/Redirect/Get. Se autentica por sesión y los formularios POST conservan la
+protección CSRF de Spring Security.
+
+La SPA React de [spa/](spa/) permite iniciar sesión con JWT, consultar jornadas
+con paginación y planificar o ejecutar una jornada. El formulario de ejecución
+permite elegir animales activos del lote y asignar dosis a los productos del
+plan sanitario. En el frontend se mantienen estados visibles de carga, datos y
+error. La API ofrece el filtro `loteId` para consultar los animales del lote.
+
+### Configuración local y producción
+
+Use el perfil `dev` para desarrollar con H2 en memoria y la SPA Vite en
+`http://localhost:5173`; Vite reenvía `/api` y `/auth` a Spring Boot. La
+configuración CORS predeterminada de desarrollo solo admite ese origen.
+`prod` requiere PostgreSQL, MongoDB Atlas y los secretos externos configurados.
+La lista de variables —solo sus nombres— se documenta en
+[docs/despliegue.md](docs/despliegue.md).
+
+El blueprint [../render.yaml](../render.yaml) prepara la API, la SPA estática y
+PostgreSQL en Render. MongoDB se administra por separado en Atlas. El
+[diagrama de despliegue](docs/diagrama-despliegue.md) documenta el tráfico
+HTTPS, JWT y las conexiones a las bases de datos.
+
+Para ejecutar la SPA localmente:
+
+```powershell
+Set-Location spa
+npm ci
+npm run dev
+```
+
+El despliegue público no se puede completar desde este repositorio: requiere
+cuentas de Render y MongoDB Atlas, configuración de sus secretos y dominios. Al
+terminarlo, registre en el aula virtual las URLs HTTPS de API, SPA y Swagger,
+junto con las credenciales efímeras de prueba de cada rol. No incluya esos
+valores en Git o en este README.

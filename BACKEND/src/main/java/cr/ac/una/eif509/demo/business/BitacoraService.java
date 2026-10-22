@@ -10,7 +10,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Service
-@Profile({"local", "docker", "test"})
+@Profile({"local", "docker", "prod", "test"})
 public class BitacoraService {
 
     private final BitacoraRepository bitacoraRepository;

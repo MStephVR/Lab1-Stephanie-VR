@@ -20,7 +20,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@Profile({"local", "docker", "test"})
+@Profile({"local", "docker", "prod", "test"})
 @RequestMapping("/api/v1")
 @SecurityRequirement(name = "bearerAuth")
 public class BitacoraController {

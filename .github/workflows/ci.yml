@@ -34,6 +34,13 @@ jobs:                         # Un workflow tiene uno o más "jobs" (trabajos)
             **/*.gradle*
             **/gradle-wrapper.properties
 
+      - name: Configurar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: BACKEND/spa/package-lock.json
+
       # Paso 3: dar permiso de ejecución al script de Gradle (necesario en Linux)
       - name: Dar permisos a gradlew
         run: chmod +x ./gradlew ./BACKEND/gradlew
@@ -45,3 +52,7 @@ jobs:                         # Un workflow tiene uno o más "jobs" (trabajos)
       - name: Verificar backend (pruebas y cobertura)
         working-directory: BACKEND
         run: ./gradlew check
+
+      - name: Compilar SPA React
+        working-directory: BACKEND/spa
+        run: npm ci && npm run build

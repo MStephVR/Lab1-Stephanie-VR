@@ -53,7 +53,13 @@ public class CatalogoService {
 
     @Transactional(readOnly = true)
     public Page<AnimalSalida> animales(String estado, String raza, Pageable pageable) {
-        return animalRepository.findAll(BusinessSpecifications.animalesPorEstadoYRaza(estado, raza), pageable)
+        return animales(estado, raza, null, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AnimalSalida> animales(String estado, String raza, Long loteId, Pageable pageable) {
+        return animalRepository.findAll(
+                        BusinessSpecifications.animalesPorEstadoRazaYLote(estado, raza, loteId), pageable)
                 .map(this::animalSalida);
     }
 

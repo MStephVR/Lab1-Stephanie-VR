@@ -54,10 +54,11 @@ public class ApiResourceController {
     public PagedModel<AnimalSalida> animales(
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) String raza,
+            @RequestParam(required = false) Long loteId,
             @ParameterObject @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.ASC)
             Pageable pageable
     ) {
-        return new PagedModel<>(catalogoService.animales(estado, raza, pageable));
+        return new PagedModel<>(catalogoService.animales(estado, raza, loteId, pageable));
     }
 
     @GetMapping("/animales/{id}")

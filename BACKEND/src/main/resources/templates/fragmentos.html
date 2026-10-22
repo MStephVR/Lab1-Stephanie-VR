@@ -6,6 +6,7 @@
   <a class="marca" th:href="@{/admin/productos}">SisGanado · Administración</a>
   <a th:href="@{/admin/productos}">Productos veterinarios</a>
   <a th:href="@{/admin/productos/nuevo}">Nuevo producto</a>
+  <a th:href="@{/admin/proveedores}">Proveedores</a>
   <span class="usuario" sec:authorize="isAuthenticated()">
     <span sec:authentication="name">admin</span>
     <form th:action="@{/logout}" method="post">

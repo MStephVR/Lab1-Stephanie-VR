@@ -1,0 +1,8 @@
+.gradle
+.git
+.idea
+.vscode
+build
+spa/node_modules
+spa/dist
+*.log

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${proveedorId == null ? 'Nuevo proveedor' : 'Editar proveedor'} + ' · SisGanado'">Proveedor · SisGanado</title>
+  <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+<nav th:replace="~{fragmentos :: menu}"></nav>
+<main class="form-main">
+  <a class="volver" th:href="@{/admin/proveedores}">← Volver a proveedores</a>
+  <p class="eyebrow">GESTIÓN DE COMPRAS</p>
+  <h1 th:text="${proveedorId == null ? 'Nuevo proveedor' : 'Editar proveedor'}">Proveedor</h1>
+  <form class="panel formulario" method="post" novalidate th:object="${form}"
+        th:action="${proveedorId == null} ? @{/admin/proveedores} : @{/admin/proveedores/{id}(id=${proveedorId})}">
+    <p class="resumen-errores" role="alert" th:if="${#fields.hasAnyErrors()}">
+      Hay errores en los campos marcados. Corrígelos e intenta de nuevo.
+    </p>
+    <div class="campos">
+      <label class="ancho-completo">Nombre del proveedor
+        <input type="text" th:field="*{nombre}" th:errorclass="campo-error" maxlength="160" required>
+        <span class="error" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}">Error</span>
+      </label>
+      <label>Teléfono
+        <input type="tel" th:field="*{telefono}" th:errorclass="campo-error" maxlength="40">
+        <span class="error" th:if="${#fields.hasErrors('telefono')}" th:errors="*{telefono}">Error</span>
+      </label>
+      <label>Correo electrónico
+        <input type="email" th:field="*{correo}" th:errorclass="campo-error" maxlength="160">
+        <span class="error" th:if="${#fields.hasErrors('correo')}" th:errors="*{correo}">Error</span>
+      </label>
+    </div>
+    <div class="acciones-form">
+      <button class="boton" type="submit">Guardar proveedor</button>
+      <a class="boton secundario" th:href="@{/admin/proveedores}">Cancelar</a>
+    </div>
+  </form>
+</main>
+</body>
+</html>

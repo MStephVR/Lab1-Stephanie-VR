@@ -10,14 +10,14 @@
 @compraId = 1
 @eventoId = evento-api-1
 
-### Obtener token admin (credenciales de desarrollo; reemplazar por variables de entorno fuera de local)
+### Obtener token admin (sustituya localmente por SISGANADO_ADMIN_PASSWORD)
 # @name login
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
   "username": "admin",
-  "password": "AdminLocal2026!"
+  "password": "<SISGANADO_ADMIN_PASSWORD>"
 }
 
 ### Obtener token veterinario
@@ -27,7 +27,7 @@ Content-Type: application/json
 
 {
   "username": "veterinario",
-  "password": "VetLocal2026!"
+  "password": "<SISGANADO_VETERINARIAN_PASSWORD>"
 }
 
 ### Registrar evento de bitácora (201 + Location; requiere ADMIN)

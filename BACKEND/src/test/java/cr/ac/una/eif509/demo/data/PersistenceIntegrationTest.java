@@ -48,6 +48,7 @@ import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -153,6 +154,42 @@ class PersistenceIntegrationTest {
 
         assertThat(animales).singleElement().extracting(animal -> animal.getLote().getNombre())
                 .isEqualTo("Lote Fetch");
+    }
+
+    @Test
+    void apiFiltraAnimalesActivosPorLote() throws Exception {
+        LoteEntity loteSeleccionado = loteRepository.save(
+                new LoteEntity("Lote SPA", "Finca", "Cria"));
+        LoteEntity otroLote = loteRepository.save(new LoteEntity("Otro lote", "Finca", "Cria"));
+        animalRepository.save(new AnimalEntity("SPA-001", "Brahman", "Hembra", 420.0,
+                LocalDate.of(2023, 1, 10), "Activo", loteSeleccionado));
+        animalRepository.save(new AnimalEntity("SPA-002", "Brahman", "Hembra", 420.0,
+                LocalDate.of(2023, 1, 10), "Activo", otroLote));
+        animalRepository.save(new AnimalEntity("SPA-003", "Brahman", "Hembra", 420.0,
+                LocalDate.of(2023, 1, 10), "Inactivo", loteSeleccionado));
+
+        mockMvc.perform(get("/api/v1/animales")
+                        .param("estado", "Activo")
+                        .param("loteId", loteSeleccionado.getId().toString())
+                        .param("page", "0")
+                        .param("size", "20")
+                        .header("Authorization", "Bearer " + token("admin", "AdminLocal2026!")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].codigoArete").value("SPA-001"))
+                .andExpect(jsonPath("$.page.totalElements").value(1));
+    }
+
+    @Test
+    void corsAceptaElOrigenLocalDeLaSpa() throws Exception {
+        mockMvc.perform(options("/auth/login")
+                        .header("Origin", "http://localhost:5173")
+                        .header("Access-Control-Request-Method", "POST")
+                        .header("Access-Control-Request-Headers", "content-type"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"))
+                .andExpect(header().string("Access-Control-Allow-Methods",
+                        org.hamcrest.Matchers.containsString("POST")));
     }
 
     @Test
@@ -682,6 +719,40 @@ class PersistenceIntegrationTest {
 
             assertThat(productoRepository.findById(producto.getId()).orElseThrow().getNombre())
                     .isEqualTo("Producto editado UI");
+        }
+
+        @Test
+        void uiAdminValidaProveedorYAplicaPostRedirectGet() throws Exception {
+            MockHttpSession session = loginWeb("admin", "AdminLocal2026!");
+
+            mockMvc.perform(post("/admin/proveedores").session(session).with(csrf())
+                            .param("nombre", "")
+                            .param("telefono", "123")
+                            .param("correo", "correo-invalido"))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("proveedores/form"))
+                    .andExpect(model().attributeHasFieldErrors("form", "nombre", "correo"));
+
+            mockMvc.perform(post("/admin/proveedores").session(session)
+                            .param("nombre", "Proveedor UI integración")
+                            .param("telefono", "2222-3333")
+                            .param("correo", "proveedor@example.test"))
+                    .andExpect(status().isForbidden());
+
+            mockMvc.perform(post("/admin/proveedores").session(session).with(csrf())
+                            .param("nombre", "Proveedor UI integración")
+                            .param("telefono", "2222-3333")
+                            .param("correo", "proveedor@example.test"))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/admin/proveedores"));
+
+            mockMvc.perform(get("/admin/proveedores").session(session))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("proveedores/lista"))
+                    .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                            "Proveedor UI integración")))
+                    .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                            "El proveedor se creó correctamente.")));
         }
 
         @Test

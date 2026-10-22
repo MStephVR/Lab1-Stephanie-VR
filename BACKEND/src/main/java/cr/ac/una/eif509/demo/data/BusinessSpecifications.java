@@ -12,13 +12,21 @@ public final class BusinessSpecifications {
     }
 
     public static Specification<AnimalEntity> animalesPorEstadoYRaza(String estado, String raza) {
+        return animalesPorEstadoRazaYLote(estado, raza, null);
+    }
+
+    public static Specification<AnimalEntity> animalesPorEstadoRazaYLote(
+            String estado, String raza, Long loteId) {
         return (root, query, builder) -> builder.and(
                 estado == null || estado.isBlank()
                         ? builder.conjunction()
                         : builder.equal(builder.lower(root.get("estado")), estado.toLowerCase()),
                 raza == null || raza.isBlank()
                         ? builder.conjunction()
-                        : builder.equal(builder.lower(root.get("raza")), raza.toLowerCase())
+                        : builder.equal(builder.lower(root.get("raza")), raza.toLowerCase()),
+                loteId == null
+                        ? builder.conjunction()
+                        : builder.equal(root.get("lote").get("id"), loteId)
         );
     }
 

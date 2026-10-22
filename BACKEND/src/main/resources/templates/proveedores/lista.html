@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Proveedores · SisGanado</title>
+  <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+<nav th:replace="~{fragmentos :: menu}"></nav>
+<main>
+  <header class="acciones">
+    <div>
+      <p class="eyebrow">GESTIÓN DE COMPRAS</p>
+      <h1>Proveedores</h1>
+      <p class="muted">Administre los contactos que abastecen los productos veterinarios.</p>
+    </div>
+    <a class="boton" th:href="@{/admin/proveedores/nuevo}">Agregar proveedor</a>
+  </header>
+  <p class="ok" role="status" th:if="${ok}" th:text="${ok}">Proveedor guardado.</p>
+  <section class="panel">
+    <p class="muted" th:unless="${pagina.empty}"
+       th:text="|${pagina.totalElements} proveedores registrados|">Proveedores registrados</p>
+    <div class="tabla-contenedor" th:unless="${pagina.empty}">
+      <table>
+        <thead><tr><th>Nombre</th><th>Teléfono</th><th>Correo</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="proveedor : ${pagina.content}">
+          <td class="nombre" th:text="${proveedor.nombre}">Proveedor</td>
+          <td th:text="${proveedor.telefono ?: '—'}">—</td>
+          <td th:text="${proveedor.correo ?: '—'}">—</td>
+          <td><a class="accion" th:href="@{/admin/proveedores/{id}(id=${proveedor.id})}">Editar</a></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="vacio" th:if="${pagina.empty}">Todavía no hay proveedores registrados.</p>
+    <nav class="paginacion" aria-label="Paginación" th:if="${pagina.totalPages > 1}">
+      <a th:if="${pagina.hasPrevious()}"
+         th:href="@{/admin/proveedores(page=${pagina.number - 1},size=${pagina.size},sort='id,desc')}">← Anterior</a>
+      <span th:text="|Página ${pagina.number + 1} de ${pagina.totalPages}|">Página 1 de 1</span>
+      <a th:if="${pagina.hasNext()}"
+         th:href="@{/admin/proveedores(page=${pagina.number + 1},size=${pagina.size},sort='id,desc')}">Siguiente →</a>
+    </nav>
+  </section>
+</main>
+</body>
+</html>

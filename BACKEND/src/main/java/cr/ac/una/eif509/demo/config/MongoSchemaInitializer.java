@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.core.validation.Validator;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile({"local", "docker"})
+@Profile({"local", "docker", "prod"})
 @Order(1)
 public class MongoSchemaInitializer implements ApplicationRunner {
 

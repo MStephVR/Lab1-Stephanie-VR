@@ -115,5 +115,12 @@ El detalle de reglas, cálculos y validaciones está en
 
 ## Resultado esperado
 
-La base deja listo el sistema para luego conectar base de datos, formularios,
-validaciones avanzadas, alertas y reportes por animal, lote o período.
+El código de este directorio conserva el esqueleto inicial del Laboratorio 1.
+La implementación vigente de la API y sus interfaces está en `BACKEND/`.
+
+## Laboratorio 5
+
+La implementación vigente de la API, el módulo MVC Thymeleaf, la SPA React y
+las instrucciones de despliegue están en [BACKEND/README.md](BACKEND/README.md).
+La publicación de servicios y bases administradas requiere configurar las
+cuentas y secretos de Render y MongoDB Atlas descritos allí.

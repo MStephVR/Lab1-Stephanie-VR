@@ -39,6 +39,8 @@ contraseña a las variables privadas de la API en Render:
 - `SISGANADO_CORS_ALLOWED_ORIGINS`
 
 La conexión PostgreSQL se fuerza a TLS (`sslmode=require`).
+El servicio usa el puerto `PORT` proporcionado por Render (con `8080` como
+valor local alternativo).
 
 Las dos contraseñas de prueba deben ser distintas, aleatorias y tener al menos
 12 caracteres. La aplicación crea los usuarios `admin` (rol `ADMIN`) y

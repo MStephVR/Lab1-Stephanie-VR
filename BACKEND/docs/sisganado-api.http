@@ -8,6 +8,7 @@
 @inventarioId = 1
 @proveedorId = 1
 @compraId = 1
+@eventoId = evento-api-1
 
 ### Obtener token admin (credenciales de desarrollo; reemplazar por variables de entorno fuera de local)
 # @name login
@@ -28,6 +29,26 @@ Content-Type: application/json
   "username": "veterinario",
   "password": "VetLocal2026!"
 }
+
+### Registrar evento de bitácora (201 + Location; requiere ADMIN)
+POST {{baseUrl}}/api/v1/bitacora
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "entidad": "Jornada",
+  "accion": "CREAR",
+  "usuario": "admin",
+  "detalle": "Jornada sanitaria registrada"
+}
+
+### Consultar colección y evento individual de bitácora (requiere ADMIN)
+GET {{baseUrl}}/api/v1/bitacora
+Authorization: Bearer {{token}}
+
+###
+GET {{baseUrl}}/api/v1/bitacora/{{eventoId}}
+Authorization: Bearer {{token}}
 
 ### Crear lote (201 + Location; requiere ADMIN)
 POST {{baseUrl}}/api/v1/lotes

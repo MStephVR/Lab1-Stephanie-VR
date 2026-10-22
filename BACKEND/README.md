@@ -128,6 +128,13 @@ jornada planificada queda asociada al usuario autenticado; leerla, ejecutarla
 o costearla requiere ser su propietario. Un recurso ajeno se responde como
 404 para evitar revelar su existencia.
 
+En perfiles `local` y `docker`, la bitácora documental está disponible para
+ADMIN. El POST recibe un JSON validado y responde `201 Created` con `Location`;
+la colección devuelve DTOs y el recurso individual puede consultarse por ID.
+Los errores HTTP usan `application/problem+json`; los errores inesperados
+responden 500 con un detalle genérico y las validaciones incluyen `errors` por
+campo.
+
 | Recurso | Rutas principales | Acceso de escritura |
 | --- | --- | --- |
 | Animales | `/api/v1/animales`, `/api/v1/animales/{id}` | ADMIN |
@@ -137,6 +144,7 @@ o costearla requiere ser su propietario. Un recurso ajeno se responde como
 | Planes sanitarios | `/api/v1/planes-sanitarios`, `/api/v1/planes-sanitarios/{id}` | ADMIN |
 | Proveedores | `/api/v1/proveedores`, `/api/v1/proveedores/{id}` | ADMIN |
 | Compras | `/api/v1/compras`, `/api/v1/compras/{id}` | ADMIN |
+| Bitácora | `/api/v1/bitacora`, `/api/v1/bitacora/{id}` | ADMIN |
 | Jornadas sanitarias | `/api/v1/jornadas`, `/api/v1/jornadas/{id}` | ADMIN/VETERINARIO |
 | Ejecución | `/api/v1/jornadas/{id}/ejecucion` | ADMIN/VETERINARIO, propietario |
 | Costeo | `/api/v1/jornadas/{id}/costo` | ADMIN/VETERINARIO, propietario |

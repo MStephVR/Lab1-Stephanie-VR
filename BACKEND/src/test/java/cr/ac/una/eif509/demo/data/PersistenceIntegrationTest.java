@@ -2,6 +2,7 @@ package cr.ac.una.eif509.demo.data;
 
 import cr.ac.una.eif509.demo.domain.AnimalEntity;
 import cr.ac.una.eif509.demo.domain.AplicacionSanitariaEntity;
+import cr.ac.una.eif509.demo.domain.BitacoraEvento;
 import cr.ac.una.eif509.demo.domain.CompraEntity;
 import cr.ac.una.eif509.demo.domain.InventarioEntity;
 import cr.ac.una.eif509.demo.domain.JornadaSanitariaEntity;
@@ -38,6 +39,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -461,6 +467,59 @@ class PersistenceIntegrationTest {
                     .andExpect(status().isUnprocessableEntity())
                     .andExpect(content().contentTypeCompatibleWith("application/problem+json"));
         }
+
+    @Test
+    void bitacoraValidaEntradaDevuelve201LocationYExponeDtoEnLaColeccion() throws Exception {
+        String token = token("admin", "AdminLocal2026!");
+        when(bitacoraRepository.save(any(BitacoraEvento.class))).thenAnswer(invocation -> {
+            BitacoraEvento evento = invocation.getArgument(0);
+            evento.setId("evento-api-1");
+            return evento;
+        });
+
+        mockMvc.perform(post("/api/v1/bitacora")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json")
+                        .content("""
+                                {"entidad":"Jornada","accion":"CREAR","usuario":"admin",
+                                 "detalle":"Jornada registrada"}
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", org.hamcrest.Matchers.endsWith(
+                        "/api/v1/bitacora/evento-api-1")))
+                .andExpect(jsonPath("$.id").value("evento-api-1"))
+                .andExpect(jsonPath("$.entidad").value("Jornada"))
+                .andExpect(jsonPath("$.fechaHora").isNotEmpty())
+                .andReturn();
+        verify(bitacoraRepository).save(any(BitacoraEvento.class));
+
+        BitacoraEvento evento = new BitacoraEvento(
+                "Jornada", "CREAR", "admin", "Jornada registrada", java.time.Instant.now());
+        evento.setId("evento-api-1");
+        when(bitacoraRepository.findById("evento-api-1")).thenReturn(Optional.of(evento));
+        when(bitacoraRepository.findAll()).thenReturn(List.of(evento));
+
+        mockMvc.perform(get("/api/v1/bitacora/evento-api-1")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("evento-api-1"));
+        mockMvc.perform(get("/api/v1/bitacora")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value("evento-api-1"))
+                .andExpect(jsonPath("$[0].detalle").value("Jornada registrada"));
+
+        mockMvc.perform(post("/api/v1/bitacora")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json")
+                        .content("""
+                                {"entidad":" ","accion":"CREAR","usuario":"admin","detalle":"Detalle"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+                .andExpect(jsonPath("$.errors.entidad[0]").exists())
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("entidad")));
+    }
 
     @Test
     void apiEliminaRecursoCon204SinContenido() throws Exception {

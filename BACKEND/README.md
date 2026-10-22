@@ -231,8 +231,9 @@ configuración CORS predeterminada de desarrollo solo admite ese origen.
 La lista de variables —solo sus nombres— se documenta en
 [docs/despliegue.md](docs/despliegue.md).
 
-El blueprint [../render.yaml](../render.yaml) prepara la API, la SPA estática y
-PostgreSQL en Render. MongoDB se administra por separado en Atlas. El
+El blueprint [../render.yaml](../render.yaml) prepara la API y la SPA estática
+en Render Free. PostgreSQL se administra en el tier gratuito de Neon y MongoDB
+en Atlas. El
 [diagrama de despliegue](docs/diagrama-despliegue.md) documenta el tráfico
 HTTPS, JWT y las conexiones a las bases de datos.
 

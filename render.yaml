@@ -2,7 +2,7 @@ services:
   - type: web
     name: sisganado-api
     runtime: docker
-    plan: starter
+    plan: free
     rootDir: BACKEND
     dockerfilePath: ./Dockerfile
     dockerContext: .
@@ -11,25 +11,15 @@ services:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
       - key: PGHOST
-        fromDatabase:
-          name: sisganado-postgres
-          property: host
+        sync: false
       - key: PGPORT
-        fromDatabase:
-          name: sisganado-postgres
-          property: port
+        sync: false
       - key: PGDATABASE
-        fromDatabase:
-          name: sisganado-postgres
-          property: database
+        sync: false
       - key: PGUSER
-        fromDatabase:
-          name: sisganado-postgres
-          property: user
+        sync: false
       - key: PGPASSWORD
-        fromDatabase:
-          name: sisganado-postgres
-          property: password
+        sync: false
       - key: SPRING_DATA_MONGODB_URI
         sync: false
       - key: SISGANADO_JWT_SECRET
@@ -44,16 +34,11 @@ services:
   - type: web
     name: sisganado-spa
     runtime: static
-    plan: free
     rootDir: BACKEND/spa
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
     envVars:
+      - key: NODE_VERSION
+        value: 22.12.0
       - key: VITE_API_BASE_URL
         sync: false
-
-databases:
-  - name: sisganado-postgres
-    plan: basic-256mb
-    databaseName: ganado_db
-    user: ganado_user

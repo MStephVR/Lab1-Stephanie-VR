@@ -2,28 +2,43 @@
 
 ## Servicios
 
-El archivo `render.yaml` define:
+El archivo `../render.yaml` define:
 
-- API Spring Boot empaquetada en Docker y verificada por `/actuator/health`.
+- API Spring Boot empaquetada en Docker, plan **Free**, verificada por
+  `/actuator/health`.
 - Sitio estático React/Vite desde `spa/`.
-- PostgreSQL gestionado por Render.
+- No crea una base PostgreSQL en Render: el plan gratuito de PostgreSQL de
+  Render vence a los 30 días. Se conecta a PostgreSQL externo en Neon.
 
-MongoDB debe crearse en MongoDB Atlas. En Atlas, habilite conectividad de red
-desde el proveedor de la API y cree un usuario de base de datos con privilegios
+PostgreSQL debe crearse en Neon y MongoDB en MongoDB Atlas, escogiendo sus
+tiers gratuitos y revisando sus límites y políticas de inactividad. En Atlas,
+habilite conectividad de red desde Render y cree un usuario con privilegios
 mínimos para la base de auditoría. Guarde la URI como secreto
 `SPRING_DATA_MONGODB_URI`; nunca la agregue al repositorio.
 
+El Web Service Free de Render puede suspenderse tras 15 minutos sin tráfico y
+tardar alrededor de un minuto en responder cuando vuelve a activarse. Tiene
+límites de horas, ancho de banda y recursos, por lo que es adecuado para la
+demostración académica, no para producción. La SPA estática de Render es
+gratuita.
+
 ## Configuración del servicio API
 
-Render inicia la aplicación con el perfil `prod`. El blueprint resuelve las
-variables `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER` y `PGPASSWORD` desde la
-instancia de PostgreSQL que crea. Configure además, en el panel privado de
-Render:
+Render inicia la aplicación con el perfil `prod`. En Neon, cree un proyecto y
+copie los campos de conexión PostgreSQL (host, puerto, base y usuario) y la
+contraseña a las variables privadas de la API en Render:
 
+- `PGHOST`
+- `PGPORT`
+- `PGDATABASE`
+- `PGUSER`
+- `PGPASSWORD`
 - `SPRING_DATA_MONGODB_URI`
 - `SISGANADO_ADMIN_PASSWORD`
 - `SISGANADO_VETERINARIAN_PASSWORD`
 - `SISGANADO_CORS_ALLOWED_ORIGINS`
+
+La conexión PostgreSQL se fuerza a TLS (`sslmode=require`).
 
 Las dos contraseñas de prueba deben ser distintas, aleatorias y tener al menos
 12 caracteres. La aplicación crea los usuarios `admin` (rol `ADMIN`) y
@@ -53,7 +68,7 @@ incorpora este valor al bundle.
   `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`,
   `SPRING_DATASOURCE_DRIVER_CLASS_NAME`, `SPRING_JPA_HIBERNATE_DDL_AUTO` y
   `SPRING_JPA_DIALECT` para cambiar la base local.
-- `prod`: PostgreSQL con Flyway, MongoDB Atlas y configuración de secretos
+- `prod`: PostgreSQL externo con Flyway, MongoDB Atlas y configuración de secretos
   obligatoria. No inicia con credenciales, orígenes CORS o conexiones faltantes.
 
 Para trabajar localmente:
@@ -75,7 +90,7 @@ el origen CORS y vuelva a desplegar la API.
 
 ## Credenciales y URL de entrega
 
-Después de publicar ambos servicios y configurar Atlas, verifique que las tres
+Después de publicar ambos servicios y configurar Neon y Atlas, verifique que las tres
 URL usan HTTPS:
 
 - API: URL pública del servicio `sisganado-api`.

@@ -66,7 +66,8 @@ incorpora este valor al bundle.
 ## Perfiles
 
 - `dev`: H2 en memoria por defecto y MongoDB deshabilitado; permite ejecutar la
-  aplicación local sin contenedores. Se pueden definir `SPRING_DATASOURCE_URL`,
+  aplicación local sin contenedores. Es el perfil predeterminado si no se
+  especifica uno; Render selecciona explícitamente `prod`. Se pueden definir `SPRING_DATASOURCE_URL`,
   `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`,
   `SPRING_DATASOURCE_DRIVER_CLASS_NAME`, `SPRING_JPA_HIBERNATE_DDL_AUTO` y
   `SPRING_JPA_DIALECT` para cambiar la base local.

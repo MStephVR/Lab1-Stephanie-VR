@@ -6,7 +6,7 @@ El archivo `../render.yaml` define:
 
 - API Spring Boot empaquetada en Docker, plan **Free**, verificada por
   `/actuator/health`.
-- Sitio estático React/Vite desde `spa/`.
+- Sitio estático React/Vite desde la carpeta raíz `spa/`.
 - No crea una base PostgreSQL en Render: el plan gratuito de PostgreSQL de
   Render vence a los 30 días. Se conecta a PostgreSQL externo en Neon.
 
@@ -79,7 +79,7 @@ Para trabajar localmente:
 ```powershell
 Set-Location BACKEND
 .\gradlew.bat bootRun --args="--spring.profiles.active=dev"
-Set-Location spa
+Set-Location ..\spa
 npm ci
 npm run dev
 ```

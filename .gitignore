@@ -25,5 +25,5 @@ Thumbs.db
 
 # ===== Logs y temporales =====
 *.log
-BACKEND/spa/node_modules/
-BACKEND/spa/dist/
+spa/node_modules/
+spa/dist/

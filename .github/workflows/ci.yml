@@ -39,7 +39,7 @@ jobs:                         # Un workflow tiene uno o más "jobs" (trabajos)
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: BACKEND/spa/package-lock.json
+          cache-dependency-path: spa/package-lock.json
 
       # Paso 3: dar permiso de ejecución al script de Gradle (necesario en Linux)
       - name: Dar permisos a gradlew
@@ -54,5 +54,5 @@ jobs:                         # Un workflow tiene uno o más "jobs" (trabajos)
         run: ./gradlew check
 
       - name: Compilar SPA React
-        working-directory: BACKEND/spa
+        working-directory: spa
         run: npm ci && npm run build

@@ -216,7 +216,7 @@ incluyen listado paginado, alta/edición con validación de Bean Validation y
 Post/Redirect/Get. Se autentica por sesión y los formularios POST conservan la
 protección CSRF de Spring Security.
 
-La SPA React de [spa/](spa/) permite iniciar sesión con JWT, consultar jornadas
+La SPA React de [../spa/](../spa/) permite iniciar sesión con JWT, consultar jornadas
 con paginación y planificar o ejecutar una jornada. El formulario de ejecución
 permite elegir animales activos del lote y asignar dosis a los productos del
 plan sanitario. En el frontend se mantienen estados visibles de carga, datos y
@@ -237,7 +237,7 @@ en Atlas. El
 [diagrama de despliegue](docs/diagrama-despliegue.md) documenta el tráfico
 HTTPS, JWT y las conexiones a las bases de datos.
 
-Para ejecutar la SPA localmente:
+Desde la raíz del repositorio, ejecute la SPA localmente:
 
 ```powershell
 Set-Location spa

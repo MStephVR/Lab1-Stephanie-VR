@@ -34,7 +34,7 @@ services:
   - type: web
     name: sisganado-spa
     runtime: static
-    rootDir: BACKEND/spa
+    rootDir: spa
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
     envVars:

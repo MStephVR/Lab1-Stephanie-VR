@@ -11,7 +11,7 @@ flowchart LR
     Browser -->|HTTPS| SPA
     Browser -->|HTTPS · CORS con origen SPA| API
     SPA -->|JWT · HTTPS| API
-    API -->|JDBC · red privada| PG
+    API -->|JDBC · Internet/TLS| PG
     API -->|MongoDB URI/TLS| Mongo
 ```
 

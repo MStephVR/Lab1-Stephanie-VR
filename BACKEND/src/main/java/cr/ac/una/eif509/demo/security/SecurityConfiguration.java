@@ -22,6 +22,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -75,6 +76,12 @@ public class SecurityConfiguration {
             Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter,
             ObjectMapper objectMapper
     ) throws Exception {
+        AuthenticationEntryPoint authenticationEntryPoint = (request, response, exception) -> {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.setContentType("application/problem+json");
+            objectMapper.writeValue(response.getOutputStream(),
+                    problem(HttpStatus.UNAUTHORIZED, "Se requiere autenticación.", "no-autenticado"));
+        };
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
@@ -87,14 +94,10 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().denyAll())
                 .oauth2ResourceServer(resourceServer -> resourceServer
+                        .authenticationEntryPoint(authenticationEntryPoint)
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
                 .exceptionHandling(errors -> errors
-                        .authenticationEntryPoint((request, response, exception) -> {
-                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                            response.setContentType("application/problem+json");
-                            objectMapper.writeValue(response.getOutputStream(),
-                                    problem(HttpStatus.UNAUTHORIZED, "Se requiere autenticación.", "no-autenticado"));
-                        })
+                        .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler((request, response, exception) -> {
                             response.setStatus(HttpStatus.FORBIDDEN.value());
                             response.setContentType("application/problem+json");

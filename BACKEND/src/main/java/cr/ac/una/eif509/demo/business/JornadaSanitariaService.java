@@ -33,6 +33,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -57,6 +58,7 @@ public class JornadaSanitariaService {
     private final JornadaSanitariaFactory jornadaFactory;
     private final CostoProductoStrategy costoProductoStrategy;
     private final UsuarioRepository usuarioRepository;
+    private final Clock applicationClock;
 
     public JornadaSanitariaService(
             JornadaSanitariaRepository jornadaRepository,
@@ -69,7 +71,8 @@ public class JornadaSanitariaService {
             AnimalRepository animalRepository,
             JornadaSanitariaFactory jornadaFactory,
             CostoProductoStrategy costoProductoStrategy,
-            UsuarioRepository usuarioRepository
+            UsuarioRepository usuarioRepository,
+            Clock applicationClock
     ) {
         this.jornadaRepository = jornadaRepository;
         this.aplicacionRepository = aplicacionRepository;
@@ -82,6 +85,7 @@ public class JornadaSanitariaService {
         this.jornadaFactory = jornadaFactory;
         this.costoProductoStrategy = costoProductoStrategy;
         this.usuarioRepository = usuarioRepository;
+        this.applicationClock = applicationClock;
     }
 
     @Transactional
@@ -93,7 +97,7 @@ public class JornadaSanitariaService {
     public RegistroJornadaSalida planificar(@Valid PlanificarJornadaEntrada entrada, String username) {
         if (entrada == null || entrada.loteId() == null || entrada.loteId() <= 0
                 || entrada.planId() == null || entrada.planId() <= 0
-                || entrada.fecha() == null || entrada.fecha().isBefore(LocalDate.now())
+                || entrada.fecha() == null || entrada.fecha().isBefore(LocalDate.now(applicationClock))
                 || entrada.descripcion() == null || entrada.descripcion().isBlank()
                 || entrada.descripcion().length() > 200) {
             throw new DatosJornadaInvalidosException(
@@ -168,7 +172,7 @@ public class JornadaSanitariaService {
         if (!"PLANIFICADA".equals(jornada.getEstado())) {
             throw new JornadaNoEjecutableException(jornada.getEstado());
         }
-        if (jornada.getFecha().isAfter(LocalDate.now())) {
+        if (jornada.getFecha().isAfter(LocalDate.now(applicationClock))) {
             throw new DatosJornadaInvalidosException(
                     "La jornada no se puede ejecutar antes de su fecha planificada.");
         }
@@ -222,7 +226,7 @@ public class JornadaSanitariaService {
         Map<Long, RegistroProductoJornada> dosisPorProducto = detalleProductos.stream()
                 .collect(Collectors.toMap(RegistroProductoJornada::productoId, Function.identity()));
 
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = LocalDate.now(applicationClock);
         int intervaloMinimoDias = intervaloMinimo(jornada.getPlan());
         validarIntervaloMinimo(animalesDelLote, jornada.getPlan(), hoy, intervaloMinimoDias);
         List<ConsumoInventario> consumos = new ArrayList<>();

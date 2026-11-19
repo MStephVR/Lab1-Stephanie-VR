@@ -17,6 +17,7 @@ import cr.ac.una.eif509.demo.domain.JornadaSanitariaEntity;
 import cr.ac.una.eif509.demo.domain.LoteEntity;
 import cr.ac.una.eif509.demo.domain.PlanSanitarioEntity;
 import cr.ac.una.eif509.demo.domain.ProductoVeterinarioEntity;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -26,7 +27,10 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,8 +55,15 @@ class JornadaSanitariaServiceTest {
     @Mock private PlanSanitarioRepository planRepository;
     @Mock private AnimalRepository animalRepository;
     @Mock private CostoProductoStrategy costoProductoStrategy;
+    @Mock private Clock applicationClock;
     @Spy private JornadaSanitariaFactory jornadaFactory = new JornadaSanitariaFactory();
     @InjectMocks private JornadaSanitariaService service;
+
+    @BeforeEach
+    void configurarReloj() {
+        lenient().when(applicationClock.instant()).thenReturn(Instant.now());
+        lenient().when(applicationClock.getZone()).thenReturn(ZoneId.of("America/Costa_Rica"));
+    }
 
     @Test
     void planificar_creaJornadaPlanificadaConCantidadDeAnimalesDelLote() {
@@ -66,6 +78,19 @@ class JornadaSanitariaServiceTest {
         ArgumentCaptor<JornadaSanitariaEntity> captor = ArgumentCaptor.forClass(JornadaSanitariaEntity.class);
         verify(jornadaRepository).save(captor.capture());
         assertEquals("PLANIFICADA", captor.getValue().getEstado());
+    }
+
+    @Test
+    void planificar_aceptaHoyEnCostaRicaAunqueUtcYaCambioDeDia() {
+        when(applicationClock.instant()).thenReturn(Instant.parse("2026-11-19T02:00:00Z"));
+        stubPlanificacion(1);
+        when(jornadaRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        PlanificarJornadaEntrada entrada = new PlanificarJornadaEntrada(
+                1L, 10L, LocalDate.of(2026, 11, 18), "Vacunación");
+
+        service.planificar(entrada);
+
+        verify(jornadaRepository).save(any());
     }
 
     @Test

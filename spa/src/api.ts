@@ -1,4 +1,6 @@
 const API_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+export const AUTH_UNAUTHORIZED_EVENT = "sisganado:unauthorized";
+export const AUTH_TOKEN_KEY = "sisganado.accessToken";
 
 export type TokenResponse = {
   accessToken: string;
@@ -60,6 +62,10 @@ async function request<T>(path: string, token?: string, init: RequestInit = {}):
 
   const response = await fetch(`${API_URL}${path}`, { ...init, headers });
   if (!response.ok) {
+    if (response.status === 401 && token) {
+      sessionStorage.removeItem(AUTH_TOKEN_KEY);
+      window.dispatchEvent(new Event(AUTH_UNAUTHORIZED_EVENT));
+    }
     const body = await response.json().catch(() => undefined) as
       | { detail?: string; message?: string; errors?: Record<string, string[]> }
       | undefined;

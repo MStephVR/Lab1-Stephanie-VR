@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { api } from "./api";
+import { api, AUTH_TOKEN_KEY, AUTH_UNAUTHORIZED_EVENT } from "./api";
 import type { Animal, Journey, Lot, Product, SanitaryPlan, TokenResponse } from "./api";
 
 const PAGE_SIZE = 8;
-const TOKEN_KEY = "sisganado.accessToken";
-
 function localDateString() {
   const today = new Date();
   today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
@@ -18,18 +16,18 @@ type ExecutionData = {
 };
 
 function readSavedToken(): string {
-  const saved = sessionStorage.getItem(TOKEN_KEY);
+  const saved = sessionStorage.getItem(AUTH_TOKEN_KEY);
   if (!saved) return "";
   try {
     const payload = saved.split(".")[1];
     const claims = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/"))) as { exp?: number };
     if (!claims.exp || claims.exp * 1000 <= Date.now()) {
-      sessionStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(AUTH_TOKEN_KEY);
       return "";
     }
     return saved;
   } catch {
-    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(AUTH_TOKEN_KEY);
     return "";
   }
 }
@@ -74,12 +72,17 @@ function App() {
   }, [token]);
 
   const signOut = useCallback(() => {
-    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(AUTH_TOKEN_KEY);
     setToken("");
     setJourneys([]);
     setSelectedJourney(null);
     setExecutionData(null);
   }, []);
+
+  useEffect(() => {
+    window.addEventListener(AUTH_UNAUTHORIZED_EVENT, signOut);
+    return () => window.removeEventListener(AUTH_UNAUTHORIZED_EVENT, signOut);
+  }, [signOut]);
 
   const loadJourneys = useCallback(async () => {
     if (!token) return;
@@ -93,13 +96,10 @@ function App() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "No se pudo cargar la lista.";
       setListError(message);
-      if (message.includes("autenticación") || message.includes("JWT") || message.includes("no-autenticado")) {
-        signOut();
-      }
     } finally {
       setListLoading(false);
     }
-  }, [page, signOut, token]);
+  }, [page, token]);
 
   useEffect(() => {
     void loadJourneys();
@@ -155,7 +155,7 @@ function App() {
     setLoginError("");
     try {
       const response: TokenResponse = await api.login(username.trim(), password);
-      sessionStorage.setItem(TOKEN_KEY, response.accessToken);
+      sessionStorage.setItem(AUTH_TOKEN_KEY, response.accessToken);
       setToken(response.accessToken);
       setPassword("");
       setPage(0);

@@ -475,7 +475,12 @@ class PersistenceIntegrationTest {
         void apiProtegidaDevuelve401SinTokenY403ParaRolInsuficiente() throws Exception {
             mockMvc.perform(get("/api/v1/lotes"))
                     .andExpect(status().isUnauthorized())
-                    .andExpect(content().contentTypeCompatibleWith("application/problem+json"));
+                    .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+                    .andExpect(jsonPath("$.type").value("https://sisganado.local/problems/no-autenticado"));
+            mockMvc.perform(get("/api/v1/lotes").header("Authorization", "Bearer token-invalido"))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+                    .andExpect(jsonPath("$.type").value("https://sisganado.local/problems/no-autenticado"));
 
             String tokenVeterinario = token("veterinario", "VetLocal2026!");
             mockMvc.perform(get("/api/v1/admin/usuarios")

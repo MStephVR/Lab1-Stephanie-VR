@@ -11,6 +11,7 @@ public record RegistroJornadaSalida(
         String descripcion,
         Integer cantidadAnimales,
         BigDecimal costoTotal,
-        String mensaje
+        String mensaje,
+        String estado
 ) {
 }

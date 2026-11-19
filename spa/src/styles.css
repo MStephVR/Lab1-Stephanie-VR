@@ -128,6 +128,14 @@ input::placeholder { color: #98a69e; }
 .notice { color: #206039; background: #e7f5e8; }
 .error-message { color: var(--red); background: #fff0ed; }
 .execution-panel { margin-top: 22px; }
+.cost-result { margin-bottom: 22px; }
+.cost-total { color: var(--green); font-size: 1.35rem; white-space: nowrap; }
+.cost-breakdown { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.cost-breakdown span { display: grid; gap: 5px; padding: 12px; border-radius: 9px; color: var(--muted); background: #f7f9f6; font-size: .8rem; }
+.cost-breakdown strong { color: #2e4137; font-size: .95rem; }
+.cost-help { margin: -8px 0 18px; line-height: 1.5; }
+.cost-input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; }
+.cost-input-grid label { display: grid; gap: 7px; color: #40544a; font-size: .87rem; font-weight: 650; }
 fieldset { min-width: 0; padding: 17px; border: 1px solid #e2eae3; border-radius: 10px; }
 legend { padding: 0 7px; color: #385247; font-size: .9rem; font-weight: 750; }
 .animal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 9px; max-height: 250px; overflow: auto; }

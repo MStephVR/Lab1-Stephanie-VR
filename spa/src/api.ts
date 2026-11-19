@@ -41,6 +41,18 @@ export type Journey = {
   cantidadAnimales: number;
   costoTotal: number | null;
   mensaje: string;
+  estado: string;
+};
+
+export type JourneyCostResult = {
+  jornadaId: number;
+  cantidadAnimales: number;
+  dosisTotalMl: number;
+  unidadesConsumidas: number;
+  costoProducto: number;
+  costosAdicionales: number;
+  costoTotal: number;
+  costoPromedioPorAnimal: number;
 };
 
 export type Lot = {
@@ -196,6 +208,15 @@ export const api = {
     animales: number[];
     productos: Array<{ productoId: number; dosisMlPorKg: number }>;
   }) => request<unknown>(`/api/v1/jornadas/${journeyId}/ejecucion`, token, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
+  processJourneyCost: (token: string, journeyId: number, payload: {
+    manoObra: number;
+    transporte: number;
+    veterinario: number;
+    otros: number;
+  }) => request<JourneyCostResult>(`/api/v1/jornadas/${journeyId}/costo`, token, {
     method: "POST",
     body: JSON.stringify(payload),
   }),

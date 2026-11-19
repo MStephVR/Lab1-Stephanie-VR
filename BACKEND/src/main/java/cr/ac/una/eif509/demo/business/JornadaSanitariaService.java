@@ -146,7 +146,8 @@ public class JornadaSanitariaService {
                 guardada.getDescripcion(),
                 guardada.getCantidadAnimales(),
                 guardada.getCostoTotal(),
-                "Jornada planificada"
+                "Jornada planificada",
+                guardada.getEstado()
         );
     }
 
@@ -343,7 +344,7 @@ public class JornadaSanitariaService {
                 jornada.getLote() == null ? null : jornada.getLote().getId(),
                 jornada.getPlan() == null ? null : jornada.getPlan().getId(),
                 jornada.getFecha(), jornada.getDescripcion(), jornada.getCantidadAnimales(),
-                jornada.getCostoTotal(), jornada.getEstado());
+                jornada.getCostoTotal(), jornada.getEstado(), jornada.getEstado());
     }
 
     @Transactional(readOnly = true)
@@ -357,7 +358,7 @@ public class JornadaSanitariaService {
                         jornada.getLote() == null ? null : jornada.getLote().getId(),
                         jornada.getPlan() == null ? null : jornada.getPlan().getId(),
                         jornada.getFecha(), jornada.getDescripcion(), jornada.getCantidadAnimales(),
-                        jornada.getCostoTotal(), jornada.getEstado()));
+                        jornada.getCostoTotal(), jornada.getEstado(), jornada.getEstado()));
     }
 
     private void verificarPropiedad(JornadaSanitariaEntity jornada, String username) {

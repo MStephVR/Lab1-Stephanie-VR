@@ -730,7 +730,8 @@ class PersistenceIntegrationTest {
                             .header("Authorization", "Bearer " + veterinarianToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.page.totalElements").value(1))
-                    .andExpect(jsonPath("$.content[0].id").value(id));
+                    .andExpect(jsonPath("$.content[0].id").value(id))
+                    .andExpect(jsonPath("$.content[0].estado").value("PLANIFICADA"));
             mockMvc.perform(get("/api/v1/jornadas?page=0&size=5&sort=fecha,desc")
                             .header("Authorization", "Bearer " + token("admin", "AdminLocal2026!")))
                     .andExpect(status().isOk())

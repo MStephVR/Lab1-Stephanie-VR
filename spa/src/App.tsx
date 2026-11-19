@@ -4,6 +4,7 @@ import { api, AUTH_TOKEN_KEY, AUTH_UNAUTHORIZED_EVENT } from "./api";
 import type {
   Animal,
   Journey,
+  JourneyCostResult,
   Lot,
   Product,
   SanitaryPlan,
@@ -95,6 +96,14 @@ function App() {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null);
+  const [selectedCostJourney, setSelectedCostJourney] = useState<Journey | null>(null);
+  const [costResult, setCostResult] = useState<JourneyCostResult | null>(null);
+  const [costError, setCostError] = useState("");
+  const [costBusy, setCostBusy] = useState(false);
+  const [laborCost, setLaborCost] = useState("0.00");
+  const [transportCost, setTransportCost] = useState("0.00");
+  const [veterinarianCost, setVeterinarianCost] = useState("0.00");
+  const [otherCost, setOtherCost] = useState("0.00");
   const [executionData, setExecutionData] = useState<ExecutionData | null>(null);
   const [executionLoading, setExecutionLoading] = useState(false);
   const [selectedAnimals, setSelectedAnimals] = useState<number[]>([]);
@@ -133,7 +142,9 @@ function App() {
     setToken("");
     setJourneys([]);
     setSelectedJourney(null);
+    setSelectedCostJourney(null);
     setExecutionData(null);
+    setCostResult(null);
   }, []);
 
   useEffect(() => {
@@ -445,6 +456,34 @@ function App() {
     }
   }
 
+  async function submitJourneyCost(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedCostJourney) return;
+    setCostBusy(true);
+    setCostError("");
+    setCostResult(null);
+    try {
+      const result = await api.processJourneyCost(token, selectedCostJourney.id, {
+        manoObra: Number(laborCost),
+        transporte: Number(transportCost),
+        veterinario: Number(veterinarianCost),
+        otros: Number(otherCost),
+      });
+      setCostResult(result);
+      setNotice(`Costo de la jornada #${result.jornadaId} registrado correctamente.`);
+      setSelectedCostJourney(null);
+      setLaborCost("0.00");
+      setTransportCost("0.00");
+      setVeterinarianCost("0.00");
+      setOtherCost("0.00");
+      await loadJourneys();
+    } catch (error) {
+      setCostError(error instanceof Error ? error.message : "No se pudo registrar el costo de la jornada.");
+    } finally {
+      setCostBusy(false);
+    }
+  }
+
   const canOperate = authorizationRole === "ADMIN" || authorizationRole === "VETERINARIO";
 
   if (!token) {
@@ -568,6 +607,19 @@ function App() {
         </section>
 
         {notice && <p className="notice" role="status">{notice}</p>}
+        {costResult && (
+          <section className="panel cost-result" aria-label="Resultado del costeo">
+            <div className="section-heading">
+              <div><p className="eyebrow">COSTEO REGISTRADO</p><h2>Jornada #{costResult.jornadaId}</h2></div>
+              <strong className="cost-total">{formatCurrency(costResult.costoTotal)}</strong>
+            </div>
+            <div className="cost-breakdown">
+              <span>Productos e inventario <strong>{formatCurrency(costResult.costoProducto)}</strong></span>
+              <span>Costos adicionales <strong>{formatCurrency(costResult.costosAdicionales)}</strong></span>
+              <span>Promedio por animal <strong>{formatCurrency(costResult.costoPromedioPorAnimal)}</strong></span>
+            </div>
+          </section>
+        )}
         {catalogError && <p className="error-message" role="alert">{catalogError}</p>}
 
         <div className={`dashboard-grid${canOperate ? "" : " is-readonly"}`}>
@@ -619,21 +671,37 @@ function App() {
             {!listLoading && !listError && journeys.length > 0 && (
               <>
                 <div className="journey-list">
-                  {journeys.map((journey) => (
-                    <article className="journey-card" key={journey.id}>
-                      <div className="journey-date">{new Date(`${journey.fecha}T00:00:00`).toLocaleDateString("es-CR", {
-                        day: "2-digit", month: "short", year: "numeric",
-                      })}</div>
-                      <div className="journey-main">
-                        <strong>{journey.descripcion}</strong>
-                        <span>Lote #{journey.loteId} · {journey.cantidadAnimales} animales · Plan #{journey.planId}</span>
-                      </div>
-                      {canOperate && <button className="button outline" onClick={() => {
-                          setFormError("");
-                          setSelectedJourney(journey);
-                        }}>Ejecutar</button>}
-                    </article>
-                  ))}
+                  {journeys.map((journey) => {
+                    const status = journey.estado || journey.mensaje;
+                    return (
+                      <article className="journey-card" key={journey.id}>
+                        <div className="journey-date">{new Date(`${journey.fecha}T00:00:00`).toLocaleDateString("es-CR", {
+                          day: "2-digit", month: "short", year: "numeric",
+                        })}</div>
+                        <div className="journey-main">
+                          <strong>{journey.descripcion}</strong>
+                          <span>Lote #{journey.loteId} · {journey.cantidadAnimales} animales · Plan #{journey.planId} · {status}</span>
+                          {status === "COSTEADA" && (
+                            <span>Costo total: {formatCurrency(journey.costoTotal ?? 0)}</span>
+                          )}
+                        </div>
+                        {canOperate && status === "PLANIFICADA" && (
+                          <button className="button outline" onClick={() => {
+                            setFormError("");
+                            setCostResult(null);
+                            setSelectedJourney(journey);
+                          }}>Ejecutar</button>
+                        )}
+                        {canOperate && status === "EJECUTADA" && (
+                          <button className="button outline" onClick={() => {
+                            setCostError("");
+                            setCostResult(null);
+                            setSelectedCostJourney(journey);
+                          }}>Registrar costo</button>
+                        )}
+                      </article>
+                    );
+                  })}
                 </div>
                 <nav className="pagination" aria-label="Paginación de jornadas">
                   <button className="button quiet" disabled={page === 0 || listLoading}
@@ -888,9 +956,52 @@ function App() {
             )}
           </section>
         )}
+        {selectedCostJourney && (
+          <section className="panel execution-panel">
+            <div className="section-heading">
+              <div><p className="eyebrow">CIERRE DE JORNADA</p><h2>Costear jornada #{selectedCostJourney.id}</h2></div>
+              <button className="button quiet" onClick={() => setSelectedCostJourney(null)} disabled={costBusy}>Cerrar</button>
+            </div>
+            <p className="muted cost-help">
+              El costo de productos se obtiene del inventario consumido durante la ejecución. Ingrese los gastos adicionales.
+            </p>
+            <form onSubmit={submitJourneyCost} className="stack">
+              <div className="cost-input-grid">
+                <label>Mano de obra (₡)
+                  <input type="number" min="0" step="0.01" value={laborCost}
+                    onChange={(event) => setLaborCost(event.target.value)} required />
+                </label>
+                <label>Transporte (₡)
+                  <input type="number" min="0" step="0.01" value={transportCost}
+                    onChange={(event) => setTransportCost(event.target.value)} required />
+                </label>
+                <label>Veterinario (₡)
+                  <input type="number" min="0" step="0.01" value={veterinarianCost}
+                    onChange={(event) => setVeterinarianCost(event.target.value)} required />
+                </label>
+                <label>Otros gastos (₡)
+                  <input type="number" min="0" step="0.01" value={otherCost}
+                    onChange={(event) => setOtherCost(event.target.value)} required />
+                </label>
+              </div>
+              {costError && <p className="error-message" role="alert">{costError}</p>}
+              <div className="form-actions">
+                <button className="button primary" disabled={costBusy}>
+                  {costBusy ? "Registrando costo…" : "Calcular y registrar costo"}
+                </button>
+                <button type="button" className="button quiet" onClick={() => setSelectedCostJourney(null)}
+                  disabled={costBusy}>Cancelar</button>
+              </div>
+            </form>
+          </section>
+        )}
       </main>
     </div>
   );
+}
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("es-CR", { style: "currency", currency: "CRC" }).format(value);
 }
 
 export default App;

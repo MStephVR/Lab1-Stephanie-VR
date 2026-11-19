@@ -1,0 +1,89 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    name: verificar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+          cache-dependency-path: |
+            **/*.gradle*
+            **/gradle-wrapper.properties
+
+      - name: Configurar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: spa/package-lock.json
+
+      - name: Permitir ejecución de Gradle
+        run: chmod +x ./gradlew ./BACKEND/gradlew
+
+      - name: Compilar y probar proyecto raíz
+        run: ./gradlew build
+
+      - name: Verificar backend (pruebas, Checkstyle y cobertura)
+        working-directory: BACKEND
+        run: ./gradlew check
+
+      - name: Verificar mínimo de 40 pruebas backend
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import sys
+          import xml.etree.ElementTree as ET
+
+          reports = list(Path("BACKEND/build/test-results/test").glob("TEST-*.xml"))
+          suites = [ET.parse(report).getroot() for report in reports]
+          total = sum(int(suite.attrib.get("tests", 0)) for suite in suites)
+          skipped = sum(int(suite.attrib.get("skipped", 0)) for suite in suites)
+          failures = sum(
+              int(suite.attrib.get("failures", 0)) + int(suite.attrib.get("errors", 0))
+              for suite in suites
+          )
+          passed = total - skipped - failures
+          print(f"Pruebas backend: {passed} exitosas; {skipped} omitidas; {failures} fallidas/error")
+          if passed < 40 or failures:
+              sys.exit("Se requieren al menos 40 pruebas backend y todas deben pasar.")
+          PY
+
+      - name: Compilar SPA React
+        working-directory: spa
+        run: npm ci && npm run build
+
+  desplegar:
+    name: desplegar
+    needs: verificar
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Activar despliegue en Render
+        env:
+          DEPLOY_HOOK: ${{ secrets.DEPLOY_HOOK }}
+        run: |
+          if [ -z "$DEPLOY_HOOK" ]; then
+            echo "::error::Falta configurar el secreto DEPLOY_HOOK."
+            exit 1
+          fi
+          curl --fail --silent --show-error --request POST \
+            --output /dev/null --write-out 'Deploy hook HTTP %{http_code}\n' \
+            "$DEPLOY_HOOK"

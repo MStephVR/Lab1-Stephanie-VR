@@ -1,6 +1,6 @@
 # Sistema Web de Control Sanitario y Costos para Ganado
 
-![CI](https://github.com/MStephVR/Lab1-Stephanie-VR/actions/workflows/ci.yml/badge.svg)
+![CI/CD](https://github.com/MStephVR/Lab1-Stephanie-VR/actions/workflows/ci-cd.yml/badge.svg)
 
 Proyecto **Spring Boot 3 + Java 21 + Gradle** organizado por capas, como base
 para administrar la información sanitaria del ganado, controlar inventario de
@@ -112,6 +112,24 @@ El detalle de reglas, cálculos y validaciones está en
 - `.gitignore` para Gradle, IDE y temporales.
 - CI en GitHub Actions para compilar en cada push.
 - ADR en `docs/adr/` con las decisiones tecnológicas.
+
+La ejecución de jornadas concentra concurrencia porque varias personas pueden
+descontar al mismo tiempo existencias de un mismo lote de inventario; por eso
+se combina el bloqueo pesimista durante el consumo con `@Version` para detectar
+actualizaciones obsoletas.
+
+## Integración y despliegue continuos
+
+El workflow [CI/CD](.github/workflows/ci-cd.yml) ejecuta las pruebas y
+verificaciones, valida que haya al menos 40 pruebas backend exitosas y compila
+la SPA en cada cambio a `master` o `main` y en cada pull request. Solo después
+de pasar esas verificaciones, los pushes a `master` activan el deploy hook de
+Render mediante el secreto `DEPLOY_HOOK`.
+
+Para proteger la rama predeterminada `master` en GitHub, configure una regla
+que requiera pull requests, el check `verificar` exitoso y prohíba force-push
+y eliminación de la rama. Esta regla se administra en GitHub y no se activa
+desde los archivos del repositorio.
 
 ## Resultado esperado
 

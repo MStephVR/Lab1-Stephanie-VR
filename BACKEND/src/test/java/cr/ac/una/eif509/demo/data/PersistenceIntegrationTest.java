@@ -206,6 +206,32 @@ class PersistenceIntegrationTest {
     }
 
     @Test
+    void actualizacionConcurrenteDeInventarioRechazaVersionObsoleta() {
+        ProductoVeterinarioEntity producto = productoRepository.save(new ProductoVeterinarioEntity(
+                "Vacuna concurrencia", "Vacuna", "ml", 1.0, 5.0, BigDecimal.valueOf(12.50)));
+        InventarioEntity creado = inventarioRepository.saveAndFlush(new InventarioEntity(
+                producto, "LOTE-CONC", LocalDate.now().plusDays(30), 10, BigDecimal.valueOf(8.00)));
+        InventarioEntity actualizacionActual = inventarioRepository.findById(creado.getId()).orElseThrow();
+        InventarioEntity actualizacionObsoleta = inventarioRepository.findById(creado.getId()).orElseThrow();
+
+        actualizacionActual.setCantidadDisponible(9);
+        inventarioRepository.saveAndFlush(actualizacionActual);
+        actualizacionObsoleta.setCantidadDisponible(8);
+
+        assertThatThrownBy(() -> inventarioRepository.saveAndFlush(actualizacionObsoleta))
+                .isInstanceOf(org.springframework.dao.OptimisticLockingFailureException.class);
+        assertThat(inventarioRepository.findById(creado.getId()).orElseThrow().getCantidadDisponible())
+                .isEqualTo(9);
+    }
+
+    @Test
+    void actuatorHealthEstaDisponible() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"));
+    }
+
+    @Test
     void consultaComprasPorRangoConProveedor() {
         ProveedorEntity proveedor = proveedorRepository.save(new ProveedorEntity(
                 "Proveedor TC", "8888-0000", "tc@example.com"));

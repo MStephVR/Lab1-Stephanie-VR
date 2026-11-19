@@ -6,6 +6,7 @@ import cr.ac.una.eif509.demo.business.exception.ReglaNegocioException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -49,6 +50,13 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     ProblemDetail dataConflict() {
         return problem(HttpStatus.CONFLICT, "La operación viola una restricción de integridad.",
                 "conflicto-de-datos");
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    ProblemDetail optimisticLockConflict() {
+        return problem(HttpStatus.CONFLICT,
+                "El registro cambió mientras se procesaba la operación. Vuelva a cargarlo e inténtelo de nuevo.",
+                "conflicto-de-concurrencia");
     }
 
     @ExceptionHandler(PropertyReferenceException.class)

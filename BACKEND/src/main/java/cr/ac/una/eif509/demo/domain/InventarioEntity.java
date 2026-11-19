@@ -9,6 +9,9 @@ import java.time.LocalDate;
 public class InventarioEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Version
+    @Column(nullable = false)
+    private Long version;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "producto_id", nullable = false)
     private ProductoVeterinarioEntity producto;

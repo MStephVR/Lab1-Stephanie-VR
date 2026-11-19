@@ -1,4 +1,4 @@
-# Auditoría de seguridad y verificaciones
+# Laboratorio 7: auditoría de seguridad y verificaciones
 
 **Fecha:** 2026-11-19
 **Alcance:** revisión del código de autenticación, concurrencia de inventario,

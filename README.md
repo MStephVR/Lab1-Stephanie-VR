@@ -118,9 +118,9 @@ descontar al mismo tiempo existencias de un mismo lote de inventario; por eso
 se combina el bloqueo pesimista durante el consumo con `@Version` para detectar
 actualizaciones obsoletas.
 
-## Integración y despliegue continuos
+## Laboratorio 7: integración y despliegue continuos
 
-El workflow [CI/CD](.github/workflows/ci-cd.yml) ejecuta las pruebas y
+El workflow de **Laboratorio 7** ([CI/CD](.github/workflows/ci-cd.yml)) ejecuta las pruebas y
 verificaciones, valida que haya al menos 40 pruebas backend exitosas y compila
 la SPA en cada cambio a `master` o `main` y en cada pull request. Solo después
 de pasar esas verificaciones, los pushes a `master` activan el deploy hook de

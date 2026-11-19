@@ -1,4 +1,4 @@
-name: CI/CD
+name: Laboratorio 7 · CI/CD
 
 on:
   push:

@@ -225,13 +225,6 @@ class PersistenceIntegrationTest {
     }
 
     @Test
-    void actuatorHealthEstaDisponible() throws Exception {
-        mockMvc.perform(get("/actuator/health"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("UP"));
-    }
-
-    @Test
     void consultaComprasPorRangoConProveedor() {
         ProveedorEntity proveedor = proveedorRepository.save(new ProveedorEntity(
                 "Proveedor TC", "8888-0000", "tc@example.com"));

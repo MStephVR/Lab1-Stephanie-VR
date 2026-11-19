@@ -5,24 +5,9 @@
 | Campo | Completar durante el ensayo |
 | --- | --- |
 | Proyecto evaluado | SisGanado · gestión sanitaria de finca |
-| Integrante(s) | María Stephanie Vargas Ramírez |
-| Evaluado por | __________________________________ |
-| Fecha del ensayo | __________________________________ |
-| Duración de la exposición | ______ minutos |
+| Integrante: | María Stephanie Vargas Ramírez |
 
-## Hoja de evaluación
 
-El puntaje se deja en blanco hasta que una persona observe una demostración
-real; no se asigna una calificación anticipada.
-
-| Criterio | Qué observar | Máximo | Puntaje del ensayo |
-| --- | --- | ---: | ---: |
-| Integración funcional | Dos procesos de extremo a extremo en el sistema desplegado | 5 | ____ / 5 |
-| Calidad técnica global | Código organizado, pruebas en verde y pipeline operativo | 4 | ____ / 4 |
-| Despliegue en la nube | Sistema estable y datos de demostración | 3 | ____ / 3 |
-| Documento de arquitectura | C4, cinco ADR, modelo de datos, seguridad y lecciones | 3 | ____ / 3 |
-| Defensa | Demostración fluida y dominio técnico de cada integrante | 5 | ____ / 5 |
-| **Total** |  | **20** | **____ / 20** |
 
 ## Preguntas del ensayo y puntos para responder
 
@@ -36,10 +21,7 @@ segunda persona antes del ensayo.
 | 2 | ¿Qué pasa si dos operaciones actualizan simultáneamente un inventario? | María Stephanie Vargas Ramírez | `@Version` detecta versión obsoleta; el manejador traduce el conflicto a HTTP 409; señalar migración y prueba. |
 | 3 | ¿Cómo se evita que una cuenta de consulta o un usuario consulte jornadas ajenas? | María Stephanie Vargas Ramírez | Roles, reglas `@PreAuthorize`, autorización por propietario y respuestas 403/404 según el caso. |
 
-## Banco de preguntas técnicas: respuestas guía
 
-Úsalas para estudiar y explícalas con tus palabras; durante la defensa conviene
-abrir la clase o prueba indicada en cada respuesta.
 
 ### Persistencia
 
@@ -184,18 +166,3 @@ pool de conexiones y límites de recursos, agregaría métricas, alertas y
 respaldos verificados, y ampliaría PostgreSQL/Render según la carga. Si hubiera
 un cuello de botella aislado y medido, evaluaría caché o separar ese componente
 con contratos claros y consistencia explícita.
-
-## Observaciones para mejorar después del ensayo
-
-1. Sobre la demostración: ________________________________________________
-2. Sobre la explicación de arquitectura: __________________________________
-3. Sobre las respuestas técnicas: _________________________________________
-
-## Acuerdos antes de presentar
-
-- [ ] Confirmar que frontend y API están en las URLs correctas.
-- [ ] Iniciar sesión con las credenciales de producción sin compartirlas en
-  diapositivas o repositorios.
-- [ ] Comprobar que hay datos de demostración y que no son datos reales.
-- [ ] Tener listo el enlace al último workflow exitoso.
-- [ ] Cronometrar la exposición y asignar quién explica cada parte.

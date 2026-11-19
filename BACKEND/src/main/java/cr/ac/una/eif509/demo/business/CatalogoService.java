@@ -1,6 +1,7 @@
 package cr.ac.una.eif509.demo.business;
 
 import cr.ac.una.eif509.demo.business.exception.RecursoNoEncontradoException;
+import cr.ac.una.eif509.demo.business.exception.ReglaNegocioException;
 import cr.ac.una.eif509.demo.data.AnimalRepository;
 import cr.ac.una.eif509.demo.data.CompraRepository;
 import cr.ac.una.eif509.demo.data.BusinessSpecifications;
@@ -349,6 +350,19 @@ public class CatalogoService {
                 .map(usuario -> new UsuarioSalida(usuario.getId(), usuario.getUsername(),
                         usuario.getNombreCompleto(), usuario.getRol(), usuario.getActivo()))
                 .toList();
+    }
+
+    @Transactional
+    public UsuarioSalida activarVeterinario(Long id) {
+        var usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("El usuario"));
+        if (!"VETERINARIO".equals(usuario.getRol())) {
+            throw new ReglaNegocioException("Solo se pueden activar cuentas veterinarias desde esta acción.");
+        }
+        usuario.setActivo(true);
+        var guardado = usuarioRepository.save(usuario);
+        return new UsuarioSalida(guardado.getId(), guardado.getUsername(),
+                guardado.getNombreCompleto(), guardado.getRol(), guardado.getActivo());
     }
 
     private List<cr.ac.una.eif509.demo.domain.ProductoVeterinarioEntity> obtenerProductos(List<Long> ids) {

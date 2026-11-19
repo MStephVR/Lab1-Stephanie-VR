@@ -5,4 +5,5 @@ import java.util.Optional;
 
 public interface UsuarioRepository extends BaseRepository<UsuarioEntity, Long> {
     Optional<UsuarioEntity> findByUsername(String username);
+    boolean existsByUsername(String username);
 }

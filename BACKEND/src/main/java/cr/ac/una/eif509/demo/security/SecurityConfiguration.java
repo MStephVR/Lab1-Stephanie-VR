@@ -89,7 +89,7 @@ public class SecurityConfiguration {
                         org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .securityMatcher("/api/v1/**", "/auth/**")
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().denyAll())

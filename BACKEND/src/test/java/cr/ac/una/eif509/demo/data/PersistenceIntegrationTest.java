@@ -40,6 +40,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -115,6 +116,8 @@ class PersistenceIntegrationTest {
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
         @MockBean
         private BitacoraRepository bitacoraRepository;
 
@@ -507,6 +510,76 @@ class PersistenceIntegrationTest {
                     .andExpect(status().isForbidden())
                     .andExpect(content().contentTypeCompatibleWith("application/problem+json"));
         }
+
+    @Test
+    void registroCreaUsuarioDeConsultaSinPermisosDeEdicion() throws Exception {
+        String username = "consulta-" + UUID.randomUUID().toString().substring(0, 8);
+        mockMvc.perform(post("/auth/register")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsBytes(java.util.Map.of(
+                                "username", username,
+                                "nombreCompleto", "Usuario de consulta",
+                                "password", "UsuarioSeguro2026!",
+                                "tipoCuenta", "USUARIO"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.requiereAprobacion").value(false));
+
+        String userToken = token(username, "UsuarioSeguro2026!");
+        mockMvc.perform(get("/api/v1/lotes").header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/jornadas")
+                        .header("Authorization", "Bearer " + userToken)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsBytes(java.util.Map.of(
+                                "loteId", 1, "planId", 1,
+                                "fecha", LocalDate.now().toString(), "descripcion", "No autorizado"))))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/auth/register")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsBytes(java.util.Map.of(
+                                "username", username,
+                                "nombreCompleto", "Usuario duplicado",
+                                "password", "UsuarioSeguro2026!",
+                                "tipoCuenta", "USUARIO"))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.type").value("https://sisganado.local/problems/cuenta-duplicada"));
+    }
+
+    @Test
+    void registroVeterinarioEsPendienteHastaAprobacionAdministrativa() throws Exception {
+        String username = "vet-" + UUID.randomUUID().toString().substring(0, 8);
+        mockMvc.perform(post("/auth/register")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsBytes(java.util.Map.of(
+                                "username", username,
+                                "nombreCompleto", "Veterinario pendiente",
+                                "password", "VeterinarioSeguro2026!",
+                                "tipoCuenta", "VETERINARIO"))))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.requiereAprobacion").value(true));
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsBytes(java.util.Map.of(
+                                "username", username, "password", "VeterinarioSeguro2026!"))))
+                .andExpect(status().isUnauthorized());
+
+        Long userId = usuarioRepository.findByUsername(username).orElseThrow().getId();
+        String adminToken = token("admin", "AdminLocal2026!");
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .put("/api/v1/admin/usuarios/{id}/activar", userId)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.activo").value(true))
+                .andExpect(jsonPath("$.rol").value("VETERINARIO"));
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsBytes(java.util.Map.of(
+                                "username", username, "password", "VeterinarioSeguro2026!"))))
+                .andExpect(status().isOk());
+    }
 
     @Test
     void apiDevuelve404Y422ConProblemDetails() throws Exception {

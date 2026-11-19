@@ -5,9 +5,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.util.List;
+import java.util.Optional;
 
 public interface ProductoVeterinarioRepository extends BaseRepository<ProductoVeterinarioEntity, Long>, JpaSpecificationExecutor<ProductoVeterinarioEntity> {
     List<ProductoVeterinarioEntity> findByTipoIgnoreCase(String tipo);
+    Optional<ProductoVeterinarioEntity> findByNombre(String nombre);
 
     @Query("select distinct p from ProductoVeterinarioEntity p left join fetch p.inventarios where p.nombre like :prefijo%")
     List<ProductoVeterinarioEntity> findByNombreStartingWithWithInventario(@Param("prefijo") String prefijo);

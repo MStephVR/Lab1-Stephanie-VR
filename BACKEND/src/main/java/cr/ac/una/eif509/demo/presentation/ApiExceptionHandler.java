@@ -3,6 +3,7 @@ package cr.ac.una.eif509.demo.presentation;
 import cr.ac.una.eif509.demo.business.exception.JornadaNoEjecutableException;
 import cr.ac.una.eif509.demo.business.exception.RecursoNoEncontradoException;
 import cr.ac.una.eif509.demo.business.exception.ReglaNegocioException;
+import cr.ac.una.eif509.demo.security.CuentaDuplicadaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -15,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -69,6 +71,16 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     ProblemDetail badCredentials() {
         return problem(HttpStatus.UNAUTHORIZED, "Credenciales inválidas.", "credenciales-invalidas");
+    }
+
+    @ExceptionHandler(CuentaDuplicadaException.class)
+    ProblemDetail duplicateAccount(CuentaDuplicadaException exception) {
+        return problem(HttpStatus.CONFLICT, exception.getMessage(), "cuenta-duplicada");
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    ProblemDetail accessDenied() {
+        return problem(HttpStatus.FORBIDDEN, "No tiene permisos para realizar esta operación.", "acceso-denegado");
     }
 
     @ExceptionHandler(Exception.class)

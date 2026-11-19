@@ -4,9 +4,11 @@ import cr.ac.una.eif509.demo.domain.AnimalEntity;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.util.List;
+import java.util.Optional;
 
 public interface AnimalRepository extends BaseRepository<AnimalEntity, Long>, JpaSpecificationExecutor<AnimalEntity> {
     List<AnimalEntity> findByLoteId(Long loteId);
+    Optional<AnimalEntity> findByCodigoArete(String codigoArete);
 
     @Query("select a from AnimalEntity a join fetch a.lote order by a.id")
     List<AnimalEntity> findAllWithLote();

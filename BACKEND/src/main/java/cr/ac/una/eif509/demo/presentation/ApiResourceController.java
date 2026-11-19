@@ -294,6 +294,12 @@ public class ApiResourceController {
         return catalogoService.usuarios();
     }
 
+    @PutMapping("/admin/usuarios/{id}/activar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public UsuarioSalida activarVeterinario(@PathVariable Long id) {
+        return catalogoService.activarVeterinario(id);
+    }
+
     private <T> ResponseEntity<T> creado(Long id, String ruta, T body) {
         URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path(ruta).buildAndExpand(id).toUri();

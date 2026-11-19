@@ -115,12 +115,18 @@ el JWT recibido como `Authorization: Bearer <token>`. En perfiles `local`,
 (`SISGANADO_VETERINARIAN_PASSWORD`). Los valores por defecto son únicamente
 para desarrollo; cámbielos en cualquier entorno compartido.
 
+Para la presentación en Render, `SISGANADO_DEMO_DATA_ENABLED=true` habilita
+una carga inicial idempotente de tres lotes, productos, planes, animales y
+jornadas vinculadas a la cuenta `admin`. Render la habilita desde `render.yaml`;
+el proceso no modifica ni elimina registros existentes y puede desactivarse
+estableciendo la variable en `false` después de la demostración.
+
 Los nombres de variables utilizados por despliegue son
 `SPRING_PROFILES_ACTIVE`, `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`,
 `PGPASSWORD`, `SPRING_DATA_MONGODB_URI`, `SPRING_DATA_MONGODB_DATABASE`,
 `SISGANADO_JWT_SECRET`, `SISGANADO_ADMIN_PASSWORD`,
-`SISGANADO_VETERINARIAN_PASSWORD`, `SISGANADO_CORS_ALLOWED_ORIGINS` y
-`VITE_API_BASE_URL`. Los nombres de variables para ajustes locales adicionales
+`SISGANADO_VETERINARIAN_PASSWORD`, `SISGANADO_DEMO_DATA_ENABLED`,
+`SISGANADO_CORS_ALLOWED_ORIGINS` y `VITE_API_BASE_URL`. Los nombres de variables para ajustes locales adicionales
 se detallan en [docs/despliegue.md](docs/despliegue.md). No se publican sus
 valores aquí.
 

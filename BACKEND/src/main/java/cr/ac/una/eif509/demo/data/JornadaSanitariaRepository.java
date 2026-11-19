@@ -13,6 +13,7 @@ import java.util.Optional;
 
 public interface JornadaSanitariaRepository extends BaseRepository<JornadaSanitariaEntity, Long> {
     Page<JornadaSanitariaEntity> findByUsuarioUsername(String username, Pageable pageable);
+    boolean existsByDescripcion(String descripcion);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select j from JornadaSanitariaEntity j where j.id = :id")

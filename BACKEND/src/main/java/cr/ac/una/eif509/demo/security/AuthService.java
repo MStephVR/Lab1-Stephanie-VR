@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class AuthService {
@@ -55,5 +56,26 @@ public class AuthService {
                 org.springframework.security.oauth2.jwt.JwsHeader.with(MacAlgorithm.HS256).build(), claims
         )).getTokenValue();
         return new LoginSalida(token, "Bearer", expiracion);
+    }
+
+    public RegistroUsuarioSalida registrar(RegistroUsuarioEntrada entrada) {
+        String username = entrada.username().trim().toLowerCase(Locale.ROOT);
+        if (usuarioRepository.existsByUsername(username)) {
+            throw new CuentaDuplicadaException();
+        }
+
+        boolean esVeterinario = entrada.tipoCuenta() == RegistroUsuarioEntrada.TipoCuenta.VETERINARIO;
+        UsuarioEntity usuario = new UsuarioEntity(
+                entrada.nombreCompleto().trim(),
+                entrada.tipoCuenta().name(),
+                !esVeterinario);
+        usuario.setUsername(username);
+        usuario.setPasswordHash(passwordEncoder.encode(entrada.password()));
+        usuarioRepository.save(usuario);
+
+        String mensaje = esVeterinario
+                ? "Tu solicitud fue enviada. Un administrador debe activar la cuenta veterinaria."
+                : "La cuenta se creó correctamente. Ya puedes iniciar sesión.";
+        return new RegistroUsuarioSalida(username, mensaje, esVeterinario);
     }
 }

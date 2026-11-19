@@ -8,6 +8,20 @@ export type TokenResponse = {
   expiresAt: string;
 };
 
+export type RegistrationResponse = {
+  username: string;
+  mensaje: string;
+  requiereAprobacion: boolean;
+};
+
+export type UserAccount = {
+  id: number;
+  username: string;
+  nombre: string;
+  rol: string;
+  activo: boolean;
+};
+
 export type Page<T> = {
   content: T[];
   page: {
@@ -44,8 +58,14 @@ export type SanitaryPlan = {
 export type Product = {
   id: number;
   nombre: string;
+  tipo?: string;
+  unidadMedida?: string;
   dosisMinima: number | null;
   dosisMaxima: number | null;
+  precioUnitario?: number;
+  contenidoMlPorUnidad?: number;
+  retiroCarneDias?: number | null;
+  retiroLecheDias?: number | null;
 };
 
 export type Animal = {
@@ -84,12 +104,68 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ username, password }),
     }),
+  register: (payload: {
+    username: string;
+    nombreCompleto: string;
+    password: string;
+    tipoCuenta: "VETERINARIO" | "USUARIO";
+  }) => request<RegistrationResponse>("/auth/register", undefined, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
   journeys: (token: string, page: number, size: number) =>
     request<Page<Journey>>(`/api/v1/jornadas?page=${page}&size=${size}&sort=fecha,desc`, token),
   lots: (token: string) =>
     request<Page<Lot>>("/api/v1/lotes?page=0&size=100&sort=nombre,asc", token),
+  createLot: (token: string, payload: {
+    nombre: string;
+    ubicacion: string;
+    proposito: string;
+    activo: boolean;
+  }) => request<Lot & { ubicacion: string; proposito: string }>("/api/v1/lotes", token, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
   plans: (token: string) =>
     request<Page<SanitaryPlan>>("/api/v1/planes-sanitarios?page=0&size=100&sort=nombre,asc", token),
+  createPlan: (token: string, payload: {
+    nombre: string;
+    descripcion: string;
+    edadObjetivoMeses: number | null;
+    intervaloMinimoDias: number;
+    productosIds: number[];
+  }) => request<SanitaryPlan>("/api/v1/planes-sanitarios", token, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
+  products: (token: string) =>
+    request<Page<Product>>("/api/v1/productos?page=0&size=100&sort=nombre,asc", token),
+  createProduct: (token: string, payload: {
+    nombre: string;
+    tipo: string;
+    unidadMedida: string;
+    dosisMinima: number;
+    dosisMaxima: number;
+    precioUnitario: number;
+    contenidoMlPorUnidad: number;
+    retiroCarneDias: number;
+    retiroLecheDias: number;
+  }) => request<Product>("/api/v1/productos", token, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
+  createAnimal: (token: string, payload: {
+    codigoArete: string;
+    raza: string;
+    sexo: string;
+    pesoKg: number;
+    fechaNacimiento: string;
+    estado: string;
+    loteId: number;
+  }) => request<Animal>("/api/v1/animales", token, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
   animalsInLot: async (token: string, lotId: number) => {
     const first = await request<Page<Animal>>(
       `/api/v1/animales?estado=Activo&loteId=${lotId}&page=0&size=100&sort=codigoArete,asc`,
@@ -123,4 +199,7 @@ export const api = {
     method: "POST",
     body: JSON.stringify(payload),
   }),
+  users: (token: string) => request<UserAccount[]>("/api/v1/admin/usuarios", token),
+  activateVeterinarian: (token: string, id: number) =>
+    request<UserAccount>(`/api/v1/admin/usuarios/${id}/activar`, token, { method: "PUT" }),
 };

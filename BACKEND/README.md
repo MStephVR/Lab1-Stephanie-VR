@@ -94,8 +94,7 @@ curl "http://localhost:8080/api/v1/costos/jornada?cantidadAnimales=10&pesoPromed
 - [Propuesta de dominio](docs/propuesta-dominio.md)
 - [Modelo de datos](docs/modelo-datos.md)
 - [Persistencia con ORM y repositorios](docs/laboratorio-3-persistencia.md)
-- [ADR-001: elección del stack](docs/adr/ADR-001-eleccion-del-stack.md)
-- [ADR-002: presupuesto y asistente de optimización](docs/adr/ADR-002-presupuesto-y-asistente-inteligente.md)
+- [ADRs del proyecto final](../docs/adr/README.md)
 - Esqueleto Spring Boot 3 + Gradle por capas.
 - `README` con instrucciones de ejecución y alcance funcional.
 - `.gitignore` para Gradle, IDE y temporales.
@@ -115,11 +114,11 @@ el JWT recibido como `Authorization: Bearer <token>`. En perfiles `local`,
 (`SISGANADO_VETERINARIAN_PASSWORD`). Los valores por defecto son únicamente
 para desarrollo; cámbielos en cualquier entorno compartido.
 
-Para la presentación en Render, `SISGANADO_DEMO_DATA_ENABLED=true` habilita
-una carga inicial idempotente de tres lotes, productos, planes, animales y
-jornadas vinculadas a la cuenta `admin`. Render la habilita desde `render.yaml`;
-el proceso no modifica ni elimina registros existentes y puede desactivarse
-estableciendo la variable en `false` después de la demostración.
+Para la presentación en Render, el perfil `prod` habilita por defecto una carga
+inicial idempotente de tres lotes, productos, planes, animales y jornadas
+vinculadas a la cuenta `admin`. El proceso no modifica ni elimina registros
+existentes y puede desactivarse estableciendo `SISGANADO_DEMO_DATA_ENABLED=false`
+después de la demostración.
 
 Los nombres de variables utilizados por despliegue son
 `SPRING_PROFILES_ACTIVE`, `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`,

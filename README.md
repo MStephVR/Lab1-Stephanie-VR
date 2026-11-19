@@ -12,6 +12,8 @@ productos veterinarios y calcular costos de vacunación y desparasitación.
   Finca San Isidro.
 - **Propuesta de dominio completa:** [docs/propuesta-dominio.md](docs/propuesta-dominio.md)
 - **Decisiones de arquitectura (ADRs):** [docs/adr/](docs/adr/README.md)
+- **Arquitectura de la defensa (C4, modelo, seguridad y lecciones):** [docs/arquitectura-sesion15.md](docs/arquitectura-sesion15.md)
+- **Hoja de ensayo y preguntas técnicas:** [docs/ensayo-sesion15.md](docs/ensayo-sesion15.md)
 
 ---
 

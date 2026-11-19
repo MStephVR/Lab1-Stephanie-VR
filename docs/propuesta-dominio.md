@@ -371,4 +371,5 @@ ahorros sin comprometer la eficacia sanitaria.
 
 **Nota:** el "asistente inteligente" en este contexto es lógica heurística
 basada en reglas (eficacia ≥ 95%, plazo ≤ 3 días, precios históricos), NO
-machine learning. Ver [ADR-002](adr/ADR-002-presupuesto-y-asistente-inteligente.md).
+machine learning. Ver [ADR-001](adr/ADR-001-alcance-del-dominio.md) y
+[ADR-003](adr/ADR-003-patrones-de-diseno.md).
